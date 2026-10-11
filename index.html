@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SBF-Binnen Trainer</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#0f2a3d">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SBF-Binnen">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="author" content="Holger – holger@wass-er.com">
+<meta name="description" content="SBF-Binnen Trainer – alle amtlichen Prüfungsfragen mit Lernkasten lernen. Eine App von Holger.">
+<link rel="stylesheet" href="schrift/schrift.css">
+<style>
+/* Eine schmale Spalte: oben Kopfzeile, darunter die jeweilige Ansicht.
+   Farben des Lernkastens laufen von Rot (Fach 1, wackelt noch) nach Grün (Fach 5, sitzt). */
+:root {
+  --bg: #eef2f4;
+  --panel: #ffffff;
+  --panel-2: #f5f8f9;
+  --ink: #12202a;
+  --muted: #5b6b75;
+  --line: #d5dee3;
+  --accent: #0f5f8c;
+  --accent-ink: #ffffff;
+  --head: #0f2a3d;
+  --head-ink: #f2f6f8;
+  --ok: #1d7a46;
+  --ok-bg: #e2f3e8;
+  --bad: #b3261e;
+  --bad-bg: #fbe5e3;
+  --pick: #e3eef6;
+  --f0: #c3ccd1;
+  --f1: #d0453b;
+  --f2: #e8862f;
+  --f3: #e6bd32;
+  --f4: #6fb05a;
+  --f5: #1f8a4c;
+  --plate: #ffffff;
+  --body: "Atkinson Hyperlegible", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0b141a;
+    --panel: #142129;
+    --panel-2: #1a2a33;
+    --ink: #e8eef1;
+    --muted: #93a4ad;
+    --line: #26363f;
+    --accent: #5fb0e0;
+    --accent-ink: #06141c;
+    --head: #08121a;
+    --head-ink: #e8eef1;
+    --ok: #5ccf8a;
+    --ok-bg: #12301f;
+    --bad: #ff8a80;
+    --bad-bg: #3a1714;
+    --pick: #1d3a4d;
+    --f0: #3a4a53;
+    --plate: #f4f6f7;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b141a;
+  --panel: #142129;
+  --panel-2: #1a2a33;
+  --ink: #e8eef1;
+  --muted: #93a4ad;
+  --line: #26363f;
+  --accent: #5fb0e0;
+  --accent-ink: #06141c;
+  --head: #08121a;
+  --head-ink: #e8eef1;
+  --ok: #5ccf8a;
+  --ok-bg: #12301f;
+  --bad: #ff8a80;
+  --bad-bg: #3a1714;
+  --pick: #1d3a4d;
+  --f0: #3a4a53;
+  --plate: #f4f6f7;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 17px/1.45 var(--body);
+  -webkit-tap-highlight-color: transparent;
+  min-height: 100vh;
+}
+button, select, input { font: inherit; color: inherit; }
+a { color: var(--accent); }
+button { cursor: pointer; }
+
+header {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--head); color: var(--head-ink);
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
+}
+.kopf { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.kopf h1 { font-size: 19px; margin: 0; flex: 1; line-height: 1.2; }
+.kopf h1 small { display: block; font-size: 13px; font-weight: 400; opacity: .75; }
+.kopf button {
+  background: transparent; border: 1px solid rgba(255,255,255,.28); color: var(--head-ink);
+  border-radius: 10px; padding: 6px 12px; font-size: 15px;
+}
+
+main {
+  max-width: 640px; margin: 0 auto;
+  padding: 16px 16px calc(env(safe-area-inset-bottom) + 28px);
+}
+.karte {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 16px; margin-bottom: 14px;
+}
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 4px 8px; }
+.gross { font-size: 40px; font-weight: 700; line-height: 1; }
+.leise { color: var(--muted); font-size: 15px; }
+
+.knopf {
+  display: block; width: 100%; border: 0; border-radius: 12px;
+  background: var(--accent); color: var(--accent-ink);
+  padding: 14px 16px; font-size: 18px; font-weight: 700; text-align: center;
+}
+.knopf.zweit { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); font-weight: 400; }
+.knopf + .knopf { margin-top: 10px; }
+.knopf:disabled { opacity: .45; cursor: default; }
+.reihe { display: flex; gap: 10px; }
+.reihe .knopf { margin-top: 0; }
+
+/* Lernkasten: sechs Säulen (Neu, Fach 1–5) */
+.kasten { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; align-items: end; }
+.fach {
+  border: 0; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.fach .saeule { width: 100%; height: 84px; display: flex; align-items: flex-end; background: var(--panel-2); border-radius: 8px; overflow: hidden; }
+.fach .fuell { width: 100%; border-radius: 8px 8px 0 0; min-height: 3px; }
+.fach b { font-size: 16px; }
+.fach span { font-size: 12px; color: var(--muted); }
+
+.balken { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--f0); }
+.balken i { display: block; height: 100%; }
+
+.thema {
+  display: flex; width: 100%; text-align: left; gap: 12px; align-items: center;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 8px;
+}
+.thema .mitte { flex: 1; min-width: 0; }
+.thema .name { font-weight: 700; display: block; margin-bottom: 6px; }
+.thema .zahl { font-size: 13px; color: var(--muted); text-align: right; white-space: nowrap; }
+.thema .zahl b { display: block; font-size: 18px; color: var(--ink); }
+.thema.aus { opacity: .5; }
+
+/* Frage */
+.fortschritt { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-bottom: 14px; }
+.fortschritt i { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.meta { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--muted); margin-bottom: 8px; flex-wrap: wrap; }
+.fragetext { font-size: 20px; font-weight: 700; line-height: 1.35; margin: 0 0 14px; }
+.fragetext img.inl { height: 1.1em; vertical-align: -0.15em; background: var(--plate); border-radius: 3px; padding: 0 3px; }
+.abbildung {
+  background: var(--plate); border-radius: 12px; padding: 14px; margin: 0 0 16px;
+  display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: center;
+}
+.abbildung img { max-width: 100%; height: auto; }
+.antwort {
+  display: flex; gap: 12px; width: 100%; text-align: left; align-items: flex-start;
+  background: var(--panel); border: 2px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 10px; line-height: 1.4;
+}
+.antwort .bst {
+  flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--panel-2); border: 1px solid var(--line); font-weight: 700; font-size: 15px;
+}
+.antwort.gewaehlt { border-color: var(--accent); background: var(--pick); }
+.antwort.richtig { border-color: var(--ok); background: var(--ok-bg); }
+.antwort.richtig .bst { background: var(--ok); color: var(--panel); border-color: var(--ok); }
+.antwort.falsch { border-color: var(--bad); background: var(--bad-bg); }
+.antwort.falsch .bst { background: var(--bad); color: var(--panel); border-color: var(--bad); }
+.antwort:disabled { cursor: default; color: inherit; }
+.rueckmeldung { font-weight: 700; margin: 6px 0 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.rueckmeldung.ok { color: var(--ok); }
+.rueckmeldung.bad { color: var(--bad); }
+.erklaerung {
+  background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; font-size: 16px;
+}
+.erklaerung p { margin: 0; }
+.erklaerung .titel { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 4px; }
+.stichworte { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.stichworte span { background: var(--pick); color: var(--ink); border-radius: 99px; padding: 3px 11px; font-size: 14px; }
+.erklaerung + .stichworte, .erklaerung .stichworte { margin-top: 10px; }
+.linkknopf { background: none; border: 0; padding: 4px 0; color: var(--accent); font-size: 15px; text-decoration: underline; margin-bottom: 8px; }
+.pille { font-weight: 400; font-size: 14px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 2px 10px; }
+.unten { position: sticky; bottom: 0; padding: 12px 0 calc(env(safe-area-inset-bottom) + 4px); background: linear-gradient(transparent, var(--bg) 30%); }
+
+/* Ergebnis */
+.teilerg { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.teilerg:last-child { border-bottom: 0; }
+.status { font-size: 26px; font-weight: 700; margin: 0 0 4px; }
+.status.ok { color: var(--ok); }
+.status.bad { color: var(--bad); }
+.fehler { border-top: 1px solid var(--line); padding: 12px 0; font-size: 15px; }
+.fehler p { margin: 4px 0; }
+
+/* Einstellungen */
+.option { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.option:last-child { border-bottom: 0; }
+.option input { margin-top: 4px; width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+.option small { display: block; color: var(--muted); font-size: 14px; }
+select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); }
+
+/* Bottom-Sheet für Thema */
+.schleier { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 10; display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: var(--panel); width: 100%; max-width: 640px; border-radius: 18px 18px 0 0;
+  padding: 18px 16px calc(env(safe-area-inset-bottom) + 18px); max-height: 90vh; overflow: auto;
+}
+.sheet h3 { margin: 0 0 4px; font-size: 20px; }
+
+/* Gamification */
+.klein { font-size: 13px; }
+.spiel-oben { display: flex; gap: 16px; align-items: center; }
+.ring { width: 92px; height: 92px; flex: none; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 9; }
+.ring-bg { stroke: var(--panel-2); }
+.ring-fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dasharray .4s; }
+.ring-fg.fertig { stroke: var(--ok); }
+.ring-fg.leer { stroke: none; }
+.ring text { transform: rotate(90deg); transform-origin: 40px 40px; text-anchor: middle; fill: var(--ink); }
+.ring-zahl { font-size: 22px; font-weight: 700; }
+.ring-text { font-size: 10px; fill: var(--muted) !important; }
+.spiel-werte { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.flamme { font-size: 17px; }
+.xpbalken { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; margin: 3px 0 1px; }
+.xpbalken i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--ok)); border-radius: 4px; }
+.woche { display: flex; justify-content: space-between; margin-top: 14px; }
+.wtag { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); width: 36px; }
+.wtag i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); background: var(--panel-2); }
+.wtag.voll i { background: var(--ok); border-color: var(--ok); }
+.wtag.heute { color: var(--ink); font-weight: 700; }
+.wtag.heute i { border-color: var(--accent); }
+.erfolge { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; padding: 10px; }
+.erfolg { border: 1px solid var(--line); border-radius: 10px; padding: 8px 4px; text-align: center; opacity: .45; filter: grayscale(1); }
+.erfolg.frei { opacity: 1; filter: none; background: var(--panel-2); }
+.erfolg .sym { display: block; font-size: 22px; }
+.erfolg b { display: block; font-size: 13px; margin-top: 2px; line-height: 1.25; }
+.erfolg small { display: block; font-size: 11px; color: var(--muted); line-height: 1.25; margin-top: 2px; }
+.willkommen { display: flex; gap: 12px; align-items: center; }
+.willkommen .axolotl { width: 92px; flex: none; }
+#meldungen { position: fixed; top: calc(env(safe-area-inset-top) + 112px); left: 0; right: 0; z-index: 30;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; padding: 0 16px; }
+.toast { background: var(--head); color: var(--head-ink); border-radius: 12px; padding: 10px 16px; font-size: 15px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25); transition: opacity .5s, transform .5s; max-width: 600px; }
+.toast.weg { opacity: 0; transform: translateY(-10px); }
+
+/* Axolotl-Belohnung */
+.belohnung { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px;
+  background: rgba(8, 28, 42, .6); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); overflow: hidden; }
+.bel-karte { position: relative; background: var(--panel); border-radius: 22px; padding: 22px 20px 20px; width: 100%; max-width: 360px;
+  text-align: center; animation: aufploppen .45s cubic-bezier(.2, 1.6, .5, 1); box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+.bel-karte .axolotl { width: 210px; max-width: 70%; margin: 4px auto 0; display: block; }
+.sprechblase { position: relative; background: var(--pick); border-radius: 16px; padding: 10px 14px; font-weight: 700; font-size: 17px; }
+.sprechblase::after { content: ""; position: absolute; left: 50%; bottom: -10px; margin-left: -10px;
+  border: 10px solid transparent; border-bottom: 0; border-top-color: var(--pick); }
+.bel-titel { font-size: 22px; font-weight: 700; margin-top: 6px; }
+.bel-xp { display: inline-block; margin: 8px 0 14px; padding: 4px 14px; border-radius: 99px; background: var(--ok-bg); color: var(--ok); font-weight: 700; font-size: 18px; }
+.axolotl { animation: huepfen 1s ease-in-out infinite; overflow: visible; }
+.axolotl .kieme path { stroke: #ec5f95; stroke-width: 9; stroke-linecap: round; fill: none; }
+.axolotl .kieme { transform-box: fill-box; transform-origin: 100% 55%; animation: wedeln 1.1s ease-in-out infinite; }
+.axolotl .augen { transform-box: fill-box; transform-origin: center; animation: blinzeln 3.6s infinite; }
+.blasen { position: absolute; inset: 0; pointer-events: none; }
+.blasen i { position: absolute; bottom: -30px; width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.7); background: rgba(255,255,255,.15); animation: steigen 3.2s ease-in infinite; }
+.blasen i:nth-child(1) { left: 8%; animation-delay: 0s; } .blasen i:nth-child(2) { left: 18%; animation-delay: .7s; width: 10px; height: 10px; }
+.blasen i:nth-child(3) { left: 30%; animation-delay: 1.4s; } .blasen i:nth-child(4) { left: 42%; animation-delay: .3s; width: 12px; height: 12px; }
+.blasen i:nth-child(5) { left: 55%; animation-delay: 1.9s; } .blasen i:nth-child(6) { left: 66%; animation-delay: .9s; width: 24px; height: 24px; }
+.blasen i:nth-child(7) { left: 76%; animation-delay: 2.4s; width: 10px; height: 10px; } .blasen i:nth-child(8) { left: 86%; animation-delay: .5s; }
+.blasen i:nth-child(9) { left: 93%; animation-delay: 1.6s; width: 12px; height: 12px; } .blasen i:nth-child(10) { left: 50%; animation-delay: 2.8s; width: 8px; height: 8px; }
+@keyframes aufploppen { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes huepfen { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes wedeln { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-14deg); } }
+@keyframes blinzeln { 0%, 90%, 100% { transform: scaleY(1); } 94% { transform: scaleY(.1); } }
+@keyframes steigen { from { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(-110vh); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .axolotl, .axolotl .kieme, .axolotl .augen, .blasen i, .bel-karte { animation: none !important; }
+}
+
+/* Maskottchen: schwimmt unter der Kopfzeile hin und her */
+.aquarium { position: relative; max-width: 640px; margin: 4px auto -10px; height: 44px; }
+.aquarium::after { content: ""; position: absolute; left: 0; right: 0; bottom: 8px; height: 6px; opacity: .35;
+  background: radial-gradient(circle at 6px -2px, transparent 6px, #5fb0e0 6.5px, #5fb0e0 7.5px, transparent 8px) 0 0 / 12px 6px repeat-x; }
+.maskottchen { position: absolute; bottom: 6px; left: 0; width: 54px; height: 46px; padding: 0; border: 0; background: none;
+  animation: schwimmen 30s ease-in-out infinite; z-index: 1; }
+.maskottchen .richtung { display: block; animation: wenden 30s step-end infinite; }
+.maskottchen .wipp { display: block; animation: wippen 1.8s ease-in-out infinite; }
+.maskottchen .axolotl { width: 54px; height: 45px; animation: none; display: block; }
+.maskottchen .wipp.froh { animation: freuen .55s ease-out 2; }
+.maskottchen .wipp.traurig { animation: schuetteln .45s ease-in-out 2; }
+@keyframes schwimmen { 0% { left: 0; } 46% { left: calc(100% - 54px); } 54% { left: calc(100% - 54px); } 100% { left: 0; } }
+@keyframes wenden { 0% { transform: scaleX(-1); } 50% { transform: scaleX(1); } }
+@keyframes wippen { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-4px) rotate(4deg); } }
+@keyframes freuen { 0% { transform: translateY(0); } 40% { transform: translateY(-16px) scale(1.12); } 100% { transform: translateY(0); } }
+@keyframes schuetteln { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .maskottchen { animation: none; left: auto; right: 0; }
+  .maskottchen .richtung, .maskottchen .wipp { animation: none !important; }
+}
+.tipps { text-align: left; font-size: 15px; margin: 10px 0 6px; padding-left: 20px; }
+.tipps li { margin-bottom: 5px; }
+.axolotl .herz { transform-box: fill-box; transform-origin: center; animation: pochen 1s ease-in-out infinite; }
+@keyframes pochen { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+.melden { display: inline-block; font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+.ueber p { margin: 0 0 10px; }
+.ueber h3 { font-size: 16px; margin: 0 0 6px; }
+
+/* Anleitung */
+details.abschnitt { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
+details.abschnitt summary { padding: 14px 16px; font-weight: 700; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+details.abschnitt summary::after { content: "+"; color: var(--accent); font-size: 20px; line-height: 1; }
+details.abschnitt[open] summary::after { content: "–"; }
+details.abschnitt summary::-webkit-details-marker { display: none; }
+details.abschnitt > div { padding: 0 16px 12px; }
+details.abschnitt ul { padding-left: 20px; margin: 6px 0; }
+details.abschnitt li { margin-bottom: 6px; }
+input[type="time"] { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); }
+
+footer { text-align: center; font-size: 13px; color: var(--muted); margin-top: 28px; }
+footer a { color: inherit; }
+@media (hover: hover) {
+  .antwort:not(:disabled):hover, .thema:hover { border-color: var(--accent); }
+}
+</style>
+</head>
+<body>
+<header><div class="kopf" id="kopf"></div></header>
+<main id="app"></main>
+<script src="fragen.js"></script>
+<script src="klang/texte.js"></script>
+<script src="anleitung.js"></script>
+<script src="spiel.js"></script>
+<script>
+"use strict";
+const D = window.SBF_DATEN;
+const APP = { version: "1.3", autor: "Holger", email: "holger@wass-er.com" };
+const SPEICHER = "sbf-binnen-v1";
+const TEILNAME = { basis: "Basisfragen", binnen: "Spezifisch Binnen", segeln: "Spezifisch Segeln" };
+const FACHNAME = ["Neu", "Fach 1", "Fach 2", "Fach 3", "Fach 4", "Fach 5"];
+// Nach so vielen Tagen ist eine Frage im jeweiligen Fach wieder fällig
+const INTERVALL = [0, 0, 1, 3, 7, 14];
+
+// Prüfungsumfänge. "pruefung": je Teil [Anzahl Fragen, mindestens richtig];
+// "gesamt" = Mindestpunktzahl über alle Teile (Variante nur Segel).
+const UMFAENGE = {
+  motor: { name: "Antriebsmaschine (Motor)", text: "Basis- und Binnenfragen",
+    teile: ["basis", "binnen"], pruefung: { basis: [7, 5], binnen: [23, 18] } },
+  motorsegel: { name: "Antriebsmaschine + Segel", text: "Basis-, Binnen- und Segelfragen",
+    teile: ["basis", "binnen", "segeln"], pruefung: { basis: [7, 5], binnen: [23, 18], segeln: [7, 5] } },
+  segel: { name: "Nur unter Segel", text: "Basis-, Binnen- und Segelfragen, kürzerer Prüfungsbogen",
+    teile: ["basis", "binnen", "segeln"], pruefung: { basis: [4], binnen: [14], segeln: [7] }, gesamt: 20 },
+  segelzusatz: { name: "Segel-Ergänzung", text: "SBF Binnen unter Motor ist schon vorhanden – nur Segelfragen",
+    teile: ["segeln"], pruefung: { segeln: [7, 5] } },
+  see: { name: "Inhaber SBF See – Motor", text: "Basisfragen entfallen – nur Binnenfragen",
+    teile: ["binnen"], pruefung: { binnen: [23, 18] } },
+  seesegel: { name: "Inhaber SBF See – Motor + Segel", text: "Binnen- und Segelfragen",
+    teile: ["binnen", "segeln"], pruefung: { binnen: [23, 18], segeln: [7, 5] } },
+};
+
+const NACH_NR = new Map(D.fragen.map((f) => [f.nr, f]));
+const THEMA = new Map(D.themen.map((t) => [t.id, t]));
+
+// ---------- Speicher ----------
+function standard() {
+  return { umfang: "motor", themenAus: [], runde: 20, wiederholen: true, farbe: "auto",
+    zeigeErklaerung: true, zeigeStichworte: true, hilfeWann: "immer", karten: {},
+    // Gamification
+    xp: 0, serie: 0, besteSerie: 0, tage: {}, tagesziel: 20, ton: true, erinnerung: "19:00",
+    erfolge: {}, pruefungenBestanden: 0, willkommen: true, fehlerSerie: 0, stimme: "quieken", antwortTon: true };
+}
+let S = (() => {
+  try {
+    const roh = localStorage.getItem(SPEICHER);
+    if (roh) return Object.assign(standard(), JSON.parse(roh));
+  } catch (e) { /* privates Fenster o. ä. – dann eben ohne Speicher */ }
+  return standard();
+})();
+function sichern() {
+  try { localStorage.setItem(SPEICHER, JSON.stringify(S)); } catch (e) { /* ignorieren */ }
+}
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+function farbeAnwenden() {
+  if (S.farbe === "auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", S.farbe);
+}
+farbeAnwenden();
+
+// ---------- Lernkasten ----------
+const tag = (t) => Math.floor((t - new Date(t).getTimezoneOffset() * 60000) / 864e5);
+const fach = (nr) => (S.karten[nr] ? S.karten[nr].f : 0);
+function faellig(nr) {
+  const k = S.karten[nr];
+  return !k || tag(Date.now()) - tag(k.t) >= INTERVALL[k.f];
+}
+function bewerten(nr, richtig) {
+  const k = S.karten[nr] || { f: 0, r: 0, x: 0 };
+  const vorher = k.f;
+  // Neue Fragen starten in Fach 1: richtig → Fach 2, falsch → Fach 1
+  k.f = richtig ? Math.min(5, Math.max(k.f, 1) + 1) : 1;
+  k.t = Date.now();
+  if (richtig) k.r++; else k.x++;
+  S.karten[nr] = k;
+  sichern();
+  return [vorher, k.f];
+}
+
+function umfang() { return UMFAENGE[S.umfang] || UMFAENGE.motor; }
+function imUmfang(f) { return umfang().teile.includes(f.teil); }
+function aktiv() { return D.fragen.filter((f) => imUmfang(f) && !S.themenAus.includes(f.thema)); }
+function themenImUmfang() {
+  return D.themen.filter((t) => D.fragen.some((f) => f.thema === t.id && imUmfang(f)));
+}
+function verteilung(fragen) {
+  const v = [0, 0, 0, 0, 0, 0];
+  fragen.forEach((f) => v[fach(f.nr)]++);
+  return v;
+}
+
+function mischen(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+// Niedrige Fächer zuerst (Fach 1 vor Neu vor Fach 2 …), innerhalb gemischt
+function lernreihenfolge(fragen) {
+  const rang = (nr) => { const f = fach(nr); return f === 0 ? 1.5 : f; };
+  return mischen(fragen).sort((a, b) => rang(a.nr) - rang(b.nr));
+}
+
+// ---------- Hilfen ----------
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function fragetextHtml(f) {
+  return esc(f.frage).replace(/\n/g, "<br>")
+    .replace(/\{(\d+)\}/g, (_, i) => `<img class="inl" src="${f.inline[i]}" alt="Symbol">`);
+}
+function abbildungHtml(f) {
+  if (!f.bilder.length) return "";
+  // Die ELWIS-Grafiken sind sehr klein: auf das Doppelte vergrößern, aber nicht breiter als die Spalte
+  return `<div class="abbildung">${f.bilder.map((b) => `<img src="${b}" alt="Abbildung zur Frage"
+    onload="this.style.width = Math.min(this.naturalWidth * 2, this.parentNode.clientWidth - 28) + 'px'">`).join("")}</div>`;
+}
+function meldenLink(f) {
+  const betreff = encodeURIComponent(`SBF-Binnen Trainer: Frage ${f.nr}`);
+  const text = encodeURIComponent(`Hallo Holger,\n\nbei Frage ${f.nr} („${f.frage.slice(0, 80)}…“) ist mir aufgefallen:\n\n`);
+  return `<a class="melden" href="mailto:${APP.email}?subject=${betreff}&body=${text}">✉️ Fehler in dieser Frage melden</a>`;
+}
+// Erklärung und Stichworte nach dem Beantworten, je nach Einstellung
+function hilfeHtml(f) {
+  const teile = [];
+  if (S.zeigeErklaerung && f.erklaerung) teile.push(`<div class="titel">Erklärung</div><p>${esc(f.erklaerung)}</p>`);
+  if (S.zeigeStichworte && f.stichworte.length) teile.push(`<div class="stichworte" aria-label="Stichworte">${f.stichworte.map((k) => `<span>${esc(k)}</span>`).join("")}</div>`);
+  return teile.length ? `<div class="erklaerung">${teile.join("")}</div>` : "";
+}
+function balkenHtml(v) {
+  const n = v.reduce((a, b) => a + b, 0) || 1;
+  return `<div class="balken">${[1, 2, 3, 4, 5].map((i) => v[i] ? `<i style="width:${v[i] / n * 100}%;background:var(--f${i})"></i>` : "").join("")}</div>`;
+}
+function kopf(titel, unter, knopf) {
+  $("#kopf").innerHTML = `<h1>${esc(titel)}${unter ? `<small>${esc(unter)}</small>` : ""}</h1>${knopf || ""}`;
+}
+const zurueckKnopf = (text = "Übersicht") => `<button onclick="start()">${text}</button>`;
+
+let sitzung = null;
+let tasten = null; // aktuelle Tastaturbelegung (Desktop)
+document.addEventListener("keydown", (e) => { if (tasten && !e.metaKey && !e.ctrlKey) tasten(e); });
+
+// Zurück-Taste (Android) bzw. Browser-Zurück führt zur Übersicht
+let tiefe = false;
+function ansichtWechsel() {
+  if (!tiefe) { history.pushState({ v: 1 }, ""); tiefe = true; }
+}
+window.addEventListener("popstate", () => {
+  tiefe = false;
+  if ($(".schleier")) { $(".schleier").remove(); return; }
+  start(true);
+});
+
+// ---------- Übersicht ----------
+function start(ohneHistory) {
+  if (!ohneHistory && tiefe) { tiefe = false; history.back(); return; }
+  sitzung = null;
+  tasten = null;
+  const u = umfang();
+  kopf("SBF-Binnen Trainer", u.name, `<button onclick="anleitung()" aria-label="Anleitung">?</button>
+    <button onclick="einstellungen()">Einstellungen</button>`);
+  const fragen = aktiv();
+  const faelligListe = fragen.filter((f) => faellig(f.nr));
+  const v = verteilung(fragen);
+  const neu = v[0];
+  const max = Math.max(1, ...v);
+  const sitzt = v[4] + v[5];
+  const aus = S.themenAus.filter((t) => themenImUmfang().some((x) => x.id === t)).length;
+
+  plaketteSetzen(faelligListe.length);
+  let h = "";
+  if (S.willkommen) {
+    h += `<div class="karte willkommen">${AXOLOTL_SVG}<div>
+      <b>Willkommen an Bord!</b>
+      <p class="leise" style="margin:4px 0 10px">Ich bin dein Lern-Axolotl und schwimme oben für dich herum – tipp mich ruhig an!
+        Lies kurz die Anleitung, dann geht's los.</p>
+      <div class="reihe"><button class="knopf" style="font-size:15px;padding:10px" onclick="anleitung()">Anleitung</button>
+      <button class="knopf zweit" style="font-size:15px;padding:10px" onclick="S.willkommen = false; sichern(); start(true)">Später</button></div>
+    </div></div>`;
+  }
+  h += spielKarteHtml();
+  h += `<div class="karte">
+    <div class="reihe" style="align-items:flex-end;justify-content:space-between;margin-bottom:14px">
+      <div><div class="gross">${faelligListe.length}</div><div class="leise">Fragen heute fällig${neu ? `, davon ${neu} neu` : ""}</div></div>
+      <div style="text-align:right"><div style="font-size:22px;font-weight:700">${Math.round(sitzt / (fragen.length || 1) * 100)} %</div>
+      <div class="leise">sicher</div></div>
+    </div>
+    ${faelligListe.length
+      ? `<button class="knopf" onclick="lernen(null)">Lernen – ${Math.min(faelligListe.length, rundeGroesse())} Fragen</button>`
+      : `<p class="leise" style="margin:0 0 10px">Für heute ist alles erledigt. Morgen sind wieder Fragen fällig.</p>
+         <button class="knopf" onclick="ueben(null)">Trotzdem weiterüben</button>`}
+    <button class="knopf zweit" onclick="pruefungStart()">Prüfung simulieren</button>
+  </div>`;
+
+  h += `<h2>Lernkasten</h2><div class="karte"><div class="kasten">
+    ${v.map((n, i) => `<button class="fach" onclick="fachUeben(${i})" ${n ? "" : "disabled"} aria-label="${FACHNAME[i]}: ${n} Fragen">
+      <div class="saeule"><div class="fuell" style="height:${n / max * 100}%;background:var(--f${i})"></div></div>
+      <b>${n}</b><span>${i ? "Fach " + i : "Neu"}</span></button>`).join("")}
+  </div>
+  <p class="leise" style="margin:12px 0 0">Richtig → ein Fach weiter, falsch → zurück in Fach 1.
+  Wiederholung nach ${INTERVALL.slice(2).join(" / ")} Tagen. Tippe ein Fach an, um es gezielt zu üben.</p></div>`;
+
+  h += `<h2>Themen${aus ? ` <span style="text-transform:none;letter-spacing:0">(${aus} ausgeblendet)</span>` : ""}</h2>`;
+  for (const t of themenImUmfang()) {
+    const ft = D.fragen.filter((f) => f.thema === t.id && imUmfang(f));
+    const ist_aus = S.themenAus.includes(t.id);
+    const fae = ft.filter((f) => faellig(f.nr)).length;
+    h += `<button class="thema${ist_aus ? " aus" : ""}" onclick="themaBlatt('${t.id}')">
+      <div class="mitte"><span class="name">${esc(t.name)}</span>${balkenHtml(verteilung(ft))}</div>
+      <div class="zahl">${ist_aus ? "aus" : `<b>${fae}</b>fällig`}<br><span>${ft.length} Fragen</span></div></button>`;
+  }
+  h += erfolgeHtml();
+  h += `<footer>Eine App von ${APP.autor} · <a href="mailto:${APP.email}">${APP.email}</a><br>
+    <a href="#" onclick="ueber(); return false">Über die App · Haftungsausschluss · Datenschutz</a><br><br>
+    ${fragen.length} Fragen im gewählten Umfang · Quelle:
+    <a href="https://www.elwis.de/DE/Sportschifffahrt/Sportbootfuehrerscheine/Fragenkatalog-Binnen/Fragenkatalog-Binnen-node.html" target="_blank" rel="noopener">${esc(D.stand)}</a></footer>`;
+  $("#app").innerHTML = h;
+  window.scrollTo(0, 0);
+}
+
+function rundeGroesse() { return S.runde > 0 ? S.runde : Infinity; }
+
+function themaBlatt(id) {
+  const t = THEMA.get(id);
+  const ft = D.fragen.filter((f) => f.thema === id && imUmfang(f));
+  const v = verteilung(ft);
+  const fae = ft.filter((f) => faellig(f.nr)).length;
+  const ist_aus = S.themenAus.includes(id);
+  const el = document.createElement("div");
+  el.className = "schleier";
+  el.onclick = (e) => { if (e.target === el) el.remove(); };
+  el.innerHTML = `<div class="sheet" role="dialog" aria-label="${esc(t.name)}">
+    <h3>${esc(t.name)}</h3>
+    <p class="leise" style="margin:0 0 12px">${ft.length} Fragen · ${v[0]} neu · ${v[1]} in Fach 1 · ${v[4] + v[5]} sicher</p>
+    ${balkenHtml(v)}
+    <div style="height:16px"></div>
+    <button class="knopf" ${fae ? "" : "disabled"} onclick="lernen('${id}')">Fällige lernen (${fae})</button>
+    <button class="knopf zweit" onclick="ueben('${id}')">Alle ${ft.length} Fragen üben</button>
+    <button class="knopf zweit" ${v[1] ? "" : "disabled"} onclick="ueben('${id}', 1)">Nur Fehler aus Fach 1 (${v[1]})</button>
+    <button class="knopf zweit" onclick="themaUmschalten('${id}')">${ist_aus ? "Thema wieder einblenden" : "Thema ausblenden"}</button>
+  </div>`;
+  document.body.appendChild(el);
+  ansichtWechsel();
+}
+function themaUmschalten(id) {
+  S.themenAus = S.themenAus.includes(id) ? S.themenAus.filter((x) => x !== id) : [...S.themenAus, id];
+  sichern();
+  $(".schleier")?.remove();
+  start(true);
+}
+
+// ---------- Lernsitzung ----------
+function themaFragen(id) {
+  return id ? D.fragen.filter((f) => f.thema === id && imUmfang(f)) : aktiv();
+}
+function lernen(id) {
+  const liste = lernreihenfolge(themaFragen(id).filter((f) => faellig(f.nr))).slice(0, rundeGroesse());
+  sitzungStarten(id ? THEMA.get(id).name : "Fällige Fragen", liste);
+}
+function ueben(id, nurFach) {
+  let fragen = themaFragen(id);
+  if (nurFach !== undefined) fragen = fragen.filter((f) => fach(f.nr) === nurFach);
+  const liste = id ? mischen(fragen) : lernreihenfolge(fragen).slice(0, rundeGroesse());
+  sitzungStarten(id ? THEMA.get(id).name : "Freies Üben", liste);
+}
+function fachUeben(i) {
+  const liste = mischen(aktiv().filter((f) => fach(f.nr) === i)).slice(0, rundeGroesse());
+  sitzungStarten(FACHNAME[i] + " üben", liste);
+}
+
+function sitzungStarten(titel, liste) {
+  $(".schleier")?.remove();
+  if (!liste.length) { start(true); return; }
+  sitzung = { modus: "lernen", titel, liste: liste.map((f) => ({ f, wdh: false })), pos: 0,
+    zaehlbar: liste.length, richtig: 0, falsch: 0, hoch: 0 };
+  ansichtWechsel();
+  frageZeigen();
+}
+
+function frageZeigen() {
+  const s = sitzung;
+  const { f, wdh } = s.liste[s.pos];
+  s.reihenfolge = mischen([0, 1, 2, 3]);
+  s.beantwortet = false;
+  const erledigt = Math.min(s.pos, s.zaehlbar);
+  kopf(s.titel, `Frage ${Math.min(s.pos + 1, s.zaehlbar)} von ${s.zaehlbar}${wdh ? " · Wiederholung" : ""} · 🔥 ${S.serie} in Folge`, zurueckKnopf("Beenden"));
+  $("#app").innerHTML = `
+    <div class="fortschritt"><i style="width:${erledigt / s.zaehlbar * 100}%"></i></div>
+    <div class="meta"><span>Nr. ${f.nr} · ${esc(THEMA.get(f.thema).name)}</span><span>${FACHNAME[fach(f.nr)]}</span></div>
+    <p class="fragetext">${fragetextHtml(f)}</p>
+    ${abbildungHtml(f)}
+    <div id="antworten">${s.reihenfolge.map((a, i) => `<button class="antwort" data-a="${a}" onclick="antworten(${a})">
+      <span class="bst">${"abcd"[i]}</span><span>${esc(f.antworten[a])}</span></button>`).join("")}</div>
+    <div id="rueck"></div>`;
+  window.scrollTo(0, 0);
+  tasten = (e) => {
+    const i = "abcd1234".indexOf(e.key.toLowerCase());
+    if (!s.beantwortet && i >= 0) antworten(s.reihenfolge[i % 4]);
+    else if (s.beantwortet && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); weiter(); }
+  };
+}
+
+function antworten(a) {
+  const s = sitzung;
+  if (s.beantwortet) return;
+  s.beantwortet = true;
+  audioBereit(); // in der Nutzergeste, damit das Axolotl auf dem iPhone sprechen darf
+  antwortKlang(a === 0);
+  const eintrag = s.liste[s.pos];
+  const richtig = a === 0;
+  document.querySelectorAll(".antwort").forEach((b) => {
+    b.disabled = true;
+    const x = +b.dataset.a;
+    if (x === 0) b.classList.add("richtig");
+    else if (x === a) b.classList.add("falsch");
+  });
+  let fachInfo = "";
+  if (!eintrag.wdh) {
+    const [von, nach] = bewerten(eintrag.f.nr, richtig);
+    if (richtig) { s.richtig++; if (nach > von) s.hoch++; } else s.falsch++;
+    const xp = spielAntwort(richtig);
+    fachInfo = `<span class="pille">${FACHNAME[von]} → ${FACHNAME[nach]}</span><span class="pille">+${xp} XP</span>`;
+  }
+  if (!richtig && S.wiederholen) s.liste.push({ f: eintrag.f, wdh: true });
+  maskottchenReagieren(richtig ? "froh" : "traurig");
+  const letzte = s.pos === s.liste.length - 1;
+  const hilfe = hilfeHtml(eintrag.f);
+  const sofort = !richtig || S.hilfeWann === "immer";
+  $("#rueck").innerHTML = `
+    <div class="rueckmeldung ${richtig ? "ok" : "bad"}">${richtig ? "Richtig!" : "Leider falsch."} ${fachInfo}</div>
+    ${hilfe ? (sofort ? hilfe : `<button class="linkknopf" onclick="this.outerHTML = hilfeHtml(sitzung.liste[sitzung.pos].f)">Erklärung anzeigen</button>`) : ""}
+    ${meldenLink(eintrag.f)}
+    <div class="unten"><button class="knopf" id="weiter" onclick="weiter()">${letzte ? "Auswertung" : "Weiter"}</button></div>`;
+  $("#weiter").focus({ preventScroll: true });
+  // bis ans Ende scrollen, damit Rückmeldung und Erklärung über dem Weiter-Knopf stehen
+  window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
+  if (warteschlange.length) setTimeout(belohnungenZeigen, 700);
+}
+
+function weiter() {
+  const s = sitzung;
+  s.pos++;
+  if (s.pos < s.liste.length) frageZeigen();
+  else rundeEnde();
+}
+
+function rundeEnde() {
+  const s = sitzung;
+  tasten = (e) => { if (e.key === "Enter") start(); };
+  const quote = Math.round(s.richtig / (s.zaehlbar || 1) * 100);
+  const nochFaellig = aktiv().filter((f) => faellig(f.nr)).length;
+  kopf("Runde beendet", s.titel, zurueckKnopf());
+  $("#app").innerHTML = `<div class="karte">
+    <div class="gross">${quote} %</div>
+    <p class="leise" style="margin:4px 0 14px">${s.richtig} von ${s.zaehlbar} beim ersten Versuch richtig</p>
+    <div class="teilerg"><span>Ein Fach aufgestiegen</span><b>${s.hoch}</b></div>
+    <div class="teilerg"><span>Zurück in Fach 1</span><b>${s.falsch}</b></div>
+    <div class="teilerg"><span>Heute noch fällig</span><b>${nochFaellig}</b></div>
+  </div>
+  ${nochFaellig ? `<button class="knopf" onclick="lernen(null)">Nächste Runde</button>` : ""}
+  <button class="knopf zweit" onclick="start()">Zur Übersicht</button>`;
+}
+
+// ---------- Prüfungssimulation ----------
+function pruefungStart() {
+  const u = umfang();
+  const liste = [];
+  for (const [teil, [anzahl]] of Object.entries(u.pruefung)) {
+    liste.push(...mischen(D.fragen.filter((f) => f.teil === teil)).slice(0, anzahl).sort((a, b) => a.nr - b.nr));
+  }
+  sitzung = { modus: "pruefung", titel: "Prüfung: " + u.name, liste, pos: 0, wahl: {},
+    reihen: liste.map(() => mischen([0, 1, 2, 3])) };
+  ansichtWechsel();
+  pruefungFrage();
+}
+
+function pruefungFrage() {
+  const s = sitzung;
+  const f = s.liste[s.pos];
+  const reihe = s.reihen[s.pos];
+  const gewaehlt = s.wahl[s.pos];
+  const offen = s.liste.length - Object.keys(s.wahl).length;
+  kopf(s.titel, `Frage ${s.pos + 1} von ${s.liste.length} · ${TEILNAME[f.teil]}`, zurueckKnopf("Abbrechen"));
+  $("#app").innerHTML = `
+    <div class="fortschritt"><i style="width:${(s.liste.length - offen) / s.liste.length * 100}%"></i></div>
+    <div class="meta"><span>Nr. ${f.nr}</span><span>${offen ? offen + " unbeantwortet" : "alle beantwortet"}</span></div>
+    <p class="fragetext">${fragetextHtml(f)}</p>
+    ${abbildungHtml(f)}
+    ${reihe.map((a, i) => `<button class="antwort${gewaehlt === a ? " gewaehlt" : ""}" onclick="pruefungWahl(${a})">
+      <span class="bst">${"abcd"[i]}</span><span>${esc(f.antworten[a])}</span></button>`).join("")}
+    <div class="unten reihe">
+      <button class="knopf zweit" onclick="pruefungGehe(-1)" ${s.pos ? "" : "disabled"}>Zurück</button>
+      ${s.pos < s.liste.length - 1
+        ? `<button class="knopf" onclick="pruefungGehe(1)">Weiter</button>`
+        : `<button class="knopf" onclick="pruefungAbgeben()">Abgeben</button>`}
+    </div>`;
+  tasten = (e) => {
+    const i = "abcd1234".indexOf(e.key.toLowerCase());
+    if (i >= 0) pruefungWahl(reihe[i % 4]);
+    else if (e.key === "ArrowRight" || e.key === "Enter") { e.preventDefault(); s.pos < s.liste.length - 1 ? pruefungGehe(1) : pruefungAbgeben(); }
+    else if (e.key === "ArrowLeft" && s.pos) pruefungGehe(-1);
+  };
+}
+function pruefungWahl(a) {
+  sitzung.wahl[sitzung.pos] = a;
+  const y = window.scrollY;
+  pruefungFrage();
+  window.scrollTo(0, y);
+}
+function pruefungGehe(d) { sitzung.pos += d; pruefungFrage(); window.scrollTo(0, 0); }
+
+function pruefungAbgeben() {
+  const s = sitzung;
+  const offen = s.liste.length - Object.keys(s.wahl).length;
+  if (offen && !confirm(`${offen} Frage(n) sind noch unbeantwortet und zählen als falsch. Trotzdem abgeben?`)) return;
+  const u = umfang();
+  const teile = {};
+  const falsch = [];
+  s.liste.forEach((f, i) => {
+    teile[f.teil] = teile[f.teil] || { r: 0, n: 0 };
+    teile[f.teil].n++;
+    if (s.wahl[i] === 0) teile[f.teil].r++;
+    else falsch.push({ f, wahl: s.wahl[i] });
+  });
+  const gesamt = Object.values(teile).reduce((a, t) => a + t.r, 0);
+  let bestanden = true;
+  let zeilen = "";
+  for (const [teil, [anzahl, min]] of Object.entries(u.pruefung)) {
+    const t = teile[teil];
+    const ok = min === undefined || t.r >= min;
+    if (!ok) bestanden = false;
+    zeilen += `<div class="teilerg"><span>${TEILNAME[teil]}</span>
+      <b style="color:var(--${ok ? "ok" : "bad"})">${t.r} / ${anzahl}${min !== undefined ? ` <span class="leise">(min. ${min})</span>` : ""}</b></div>`;
+  }
+  if (u.gesamt !== undefined) {
+    const ok = gesamt >= u.gesamt;
+    if (!ok) bestanden = false;
+    zeilen += `<div class="teilerg"><span>Gesamt</span><b style="color:var(--${ok ? "ok" : "bad"})">${gesamt} / ${s.liste.length} <span class="leise">(min. ${u.gesamt})</span></b></div>`;
+  }
+  s.falschListe = falsch.map((x) => x.f);
+  audioBereit();
+  spielPruefung(Object.keys(s.wahl).length, gesamt, bestanden);
+  setTimeout(belohnungenZeigen, 700);
+  tasten = null;
+  kopf("Prüfungsergebnis", u.name, zurueckKnopf());
+  $("#app").innerHTML = `<div class="karte">
+    <p class="status ${bestanden ? "ok" : "bad"}">${bestanden ? "Bestanden" : "Nicht bestanden"}</p>
+    <p class="leise" style="margin:0 0 8px">${gesamt} von ${s.liste.length} richtig</p>
+    ${zeilen}
+  </div>
+  ${falsch.length ? `<button class="knopf" onclick="fehlerLernen()">Die ${falsch.length} falschen Fragen jetzt lernen</button>` : ""}
+  <button class="knopf zweit" onclick="pruefungStart()">Neuer Prüfungsbogen</button>
+  ${falsch.length ? `<h2>Falsch beantwortet</h2><div class="karte">${falsch.map(({ f, wahl }) => `<div class="fehler">
+    <p><b>${f.nr}. ${fragetextHtml(f)}</b></p>
+    ${wahl !== undefined ? `<p style="color:var(--bad)">✗ ${esc(f.antworten[wahl])}</p>` : `<p class="leise">nicht beantwortet</p>`}
+    <p style="color:var(--ok)">✓ ${esc(f.antworten[0])}</p>${hilfeHtml(f)}${meldenLink(f)}</div>`).join("")}</div>` : ""}
+  <p class="leise" style="text-align:center">Fragenanzahl und Bestehensgrenzen entsprechen den Angaben der Bootsschulen; verbindlich ist die Prüfungsstelle.</p>`;
+  window.scrollTo(0, 0);
+}
+function fehlerLernen() {
+  const liste = mischen(sitzung.falschListe);
+  sitzungStarten("Fehler aus der Prüfung", liste);
+}
+
+// ---------- Anleitung ----------
+function anleitung() {
+  tasten = null;
+  ansichtWechsel();
+  if (S.willkommen) { S.willkommen = false; sichern(); }
+  kopf("Anleitung", "So funktioniert der Trainer", zurueckKnopf("Fertig"));
+  $("#app").innerHTML = `<div class="karte willkommen">${AXOLOTL_SVG}
+      <p style="margin:0">Ahoi! Hier erfährst du alles über den Trainer. Tippe einen Abschnitt an, um ihn aufzuklappen.</p></div>
+    ${window.SBF_ANLEITUNG.map((a, i) => `<details class="abschnitt"${i < 2 ? " open" : ""}>
+      <summary>${esc(a.titel)}</summary><div>${a.html}</div></details>`).join("")}
+    <button class="knopf" style="margin-top:14px" onclick="start()">Los geht's!</button>`;
+  window.scrollTo(0, 0);
+}
+
+// ---------- Über die App ----------
+function ueber() {
+  tasten = null;
+  ansichtWechsel();
+  kopf("Über die App", `Version ${APP.version}`, zurueckKnopf("Fertig"));
+  $("#app").innerHTML = `<div class="karte willkommen">${AXOLOTL_SVG}<div>
+      <b>SBF-Binnen Trainer</b><br>Eine App von ${APP.autor}<br>
+      <a href="mailto:${APP.email}">${APP.email}</a></div></div>
+    <div class="karte ueber">
+      <h3>Haftungsausschluss</h3>
+      <p>Die Prüfungsfragen und Antworten stammen aus dem amtlichen Fragenkatalog für den Sportbootführerschein
+        Binnen (ELWIS, ${esc(D.stand.replace(/^.*Stand /, "Stand "))}) und wurden automatisiert übernommen.
+        Erklärungen, Stichworte, Themenzuordnung, Prüfungssimulation und Bestehensgrenzen sind selbst erstellt und
+        <b>nicht amtlich</b>.</p>
+      <p>Alle Inhalte wurden sorgfältig erstellt. Für Richtigkeit, Vollständigkeit und Aktualität wird jedoch
+        keine Gewähr übernommen. Maßgeblich sind allein der aktuelle amtliche Fragenkatalog und die geltenden
+        Vorschriften (u. a. Binnenschifffahrtsstraßen-Ordnung und Sportbootführerscheinverordnung).
+        Die App ersetzt keine Ausbildung bei einer Bootsschule.</p>
+      <p>Die Nutzung erfolgt auf eigene Verantwortung. Eine Haftung für Schäden, die aus der Nutzung der App
+        entstehen, ist ausgeschlossen, soweit dies gesetzlich zulässig ist.</p>
+      <p>Hast du einen Fehler gefunden? Bitte melde ihn an <a href="mailto:${APP.email}">${APP.email}</a>.
+        Nach jeder Frage gibt es dafür auch den Link „Fehler in dieser Frage melden“.</p>
+    </div>
+    <div class="karte ueber">
+      <h3>Datenschutz</h3>
+      <p>Die App speichert deinen Lernstand ausschließlich auf deinem Gerät. Es gibt keine Anmeldung, kein Tracking
+        und keine Weitergabe von Daten. Schrift, Bilder und Töne werden vom selben Server geladen wie die App selbst.</p>
+    </div>
+    <div class="karte ueber">
+      <h3>Quellen und Lizenzen</h3>
+      <p>Fragen und Abbildungen: Fragenkatalog SBF-Binnen der Wasserstraßen- und Schifffahrtsverwaltung des Bundes,
+        <a href="https://www.elwis.de/DE/Sportschifffahrt/Sportbootfuehrerscheine/Fragenkatalog-Binnen/Fragenkatalog-Binnen-node.html" target="_blank" rel="noopener">elwis.de</a>.</p>
+      <p>Schrift: Atkinson Hyperlegible vom Braille Institute, SIL Open Font License 1.1.</p>
+    </div>`;
+  window.scrollTo(0, 0);
+}
+
+// ---------- Einstellungen ----------
+function einstellungen() {
+  tasten = null;
+  ansichtWechsel();
+  kopf("Einstellungen", "", zurueckKnopf("Fertig"));
+  const themen = themenImUmfang();
+  $("#app").innerHTML = `
+  <h2>Prüfungsumfang</h2><div class="karte">
+    ${Object.entries(UMFAENGE).map(([id, u]) => `<label class="option">
+      <input type="radio" name="umfang" value="${id}" ${S.umfang === id ? "checked" : ""} onchange="umfangSetzen('${id}')">
+      <span>${esc(u.name)}<small>${esc(u.text)} · ${D.fragen.filter((f) => u.teile.includes(f.teil)).length} Fragen</small></span></label>`).join("")}
+  </div>
+  <h2>Themen</h2><div class="karte">
+    <p class="leise" style="margin:0 0 4px">Ausgeblendete Themen tauchen beim Lernen nicht auf. Die Prüfungssimulation nutzt immer den vollen Katalog.</p>
+    ${themen.map((t) => `<label class="option">
+      <input type="checkbox" ${S.themenAus.includes(t.id) ? "" : "checked"} onchange="themaSetzen('${t.id}', this.checked)">
+      <span>${esc(t.name)}<small>${D.fragen.filter((f) => f.thema === t.id && imUmfang(f)).length} Fragen</small></span></label>`).join("")}
+  </div>
+  <h2>Lernen</h2><div class="karte">
+    <label class="leise" for="runde">Fragen pro Runde</label>
+    <select id="runde" onchange="S.runde = +this.value; sichern()">
+      ${[10, 20, 30, 50, 0].map((n) => `<option value="${n}" ${S.runde === n ? "selected" : ""}>${n || "Alle fälligen"}</option>`).join("")}
+    </select>
+    <label class="option" style="margin-top:8px">
+      <input type="checkbox" ${S.wiederholen ? "checked" : ""} onchange="S.wiederholen = this.checked; sichern()">
+      <span>Falsche Antworten am Rundenende wiederholen<small>Die Wiederholung ändert das Fach nicht mehr.</small></span></label>
+  </div>
+  <h2>Töne</h2><div class="karte">
+    <label class="option">
+      <input type="checkbox" ${S.antwortTon ? "checked" : ""} onchange="S.antwortTon = this.checked; sichern()">
+      <span>Töne bei Antworten<small>Ein heller Doppelton bei richtigen, ein tiefer bei falschen Antworten.</small></span></label>
+    <div class="reihe" style="margin-top:6px">
+      <button class="knopf zweit" style="font-size:15px;padding:10px" onclick="probehoeren(true)">▶ Richtig</button>
+      <button class="knopf zweit" style="font-size:15px;padding:10px" onclick="probehoeren(false)">▶ Falsch</button>
+    </div>
+  </div>
+  <h2>Tagesziel und Belohnungen</h2><div class="karte">
+    <label class="leise" for="tagesziel">Tagesziel</label>
+    <select id="tagesziel" onchange="S.tagesziel = +this.value; sichern()">
+      ${[10, 20, 30, 50, 75, 100].map((n) => `<option value="${n}" ${S.tagesziel === n ? "selected" : ""}>${n} Fragen pro Tag</option>`).join("")}
+    </select>
+    <label class="option" style="margin-top:8px">
+      <input type="checkbox" ${S.ton ? "checked" : ""} onchange="S.ton = this.checked; sichern()">
+      <span>Ton<small>Das Axolotl lobt dich auch hörbar.</small></span></label>
+    <label class="leise" for="stimme">Stimme des Axolotls</label>
+    <select id="stimme" onchange="S.stimme = this.value; sichern()">
+      ${[["quieken", "Axolotl-Sprache (niedliches Quieken)"], ["sprache", "Gesprochene Sätze (Computerstimme)"]].map(([v, n]) => `<option value="${v}" ${S.stimme === v ? "selected" : ""}>${n}</option>`).join("")}
+    </select>
+    <div style="height:10px"></div>
+    <button class="knopf zweit" onclick="audioBereit(); warteschlange.push({ anlass: 'serie', titel: 'So sieht dein Lob aus!', xp: 0 }); belohnungenZeigen()">Axolotl ausprobieren</button>
+  </div>
+  <h2>Erinnerung</h2><div class="karte">
+    <p class="leise" style="margin:0 0 10px">Trägt eine tägliche Erinnerung in den Kalender deines Geräts ein. Ohne Server ist das der zuverlässigste Weg für iPhone, Android und Rechner.</p>
+    <label class="leise" for="erinnerung">Uhrzeit</label>
+    <div class="reihe" style="align-items:center">
+      <input type="time" id="erinnerung" value="${S.erinnerung}" onchange="S.erinnerung = this.value || '19:00'; sichern()">
+      <button class="knopf" style="font-size:15px" onclick="kalenderErinnerung()">Erinnerung im Kalender eintragen</button>
+    </div>
+  </div>
+  <h2>Nach dem Beantworten</h2><div class="karte">
+    <label class="option">
+      <input type="checkbox" ${S.zeigeErklaerung ? "checked" : ""} onchange="S.zeigeErklaerung = this.checked; sichern()">
+      <span>Erklärung anzeigen<small>Warum die richtige Antwort stimmt, oft mit Merkhilfe.</small></span></label>
+    <label class="option">
+      <input type="checkbox" ${S.zeigeStichworte ? "checked" : ""} onchange="S.zeigeStichworte = this.checked; sichern()">
+      <span>Stichworte anzeigen<small>Die Kernbegriffe zum Einprägen, z. B. „Kurzer Ton · ca. 1 Sekunde“.</small></span></label>
+    <label class="leise" for="hilfeWann" style="display:block;margin-top:10px">Wann anzeigen</label>
+    <select id="hilfeWann" onchange="S.hilfeWann = this.value; sichern()">
+      ${[["immer", "Nach jeder Antwort"], ["fehler", "Nur bei falscher Antwort (sonst auf Antippen)"]].map(([v, n]) => `<option value="${v}" ${S.hilfeWann === v ? "selected" : ""}>${n}</option>`).join("")}
+    </select>
+    <p class="leise" style="margin:10px 0 0">Die Erklärungen sind selbst verfasst und nicht Teil des amtlichen Katalogs. Verbindlich sind die amtlichen Antworten.</p>
+  </div>
+  <h2>Darstellung</h2><div class="karte">
+    <select onchange="S.farbe = this.value; sichern(); farbeAnwenden()">
+      ${[["auto", "Wie das Gerät"], ["light", "Hell"], ["dark", "Dunkel"]].map(([v, n]) => `<option value="${v}" ${S.farbe === v ? "selected" : ""}>${n}</option>`).join("")}
+    </select>
+  </div>
+  <h2>Lernstand</h2><div class="karte">
+    <p class="leise" style="margin:0 0 12px">Der Lernstand liegt nur auf diesem Gerät. Zum Umziehen auf ein anderes Gerät exportieren und dort importieren.</p>
+    <button class="knopf zweit" onclick="exportieren()">Lernstand exportieren</button>
+    <button class="knopf zweit" onclick="$('#datei').click()">Lernstand importieren</button>
+    <input type="file" id="datei" accept="application/json,.json" hidden onchange="importieren(this.files[0])">
+    <button class="knopf zweit" style="color:var(--bad)" onclick="zuruecksetzen()">Lernstand und Punkte zurücksetzen</button>
+  </div>
+  <button class="knopf zweit" onclick="ueber()">Über die App · Haftungsausschluss</button>`;
+  window.scrollTo(0, 0);
+}
+function probehoeren(richtig) {
+  const vorher = S.antwortTon;
+  S.antwortTon = true; // Probehören geht auch, wenn die Töne gerade aus sind
+  audioBereit();
+  antwortKlang(richtig);
+  S.antwortTon = vorher;
+}
+function umfangSetzen(id) { S.umfang = id; sichern(); einstellungen(); }
+function themaSetzen(id, an) {
+  S.themenAus = an ? S.themenAus.filter((x) => x !== id) : [...new Set([...S.themenAus, id])];
+  sichern();
+}
+function exportieren() {
+  const blob = new Blob([JSON.stringify({ app: "sbf-binnen", version: 1, datum: new Date().toISOString(), daten: S })], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `sbf-binnen-lernstand-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function importieren(datei) {
+  if (!datei) return;
+  datei.text().then((t) => {
+    const j = JSON.parse(t);
+    if (j.app !== "sbf-binnen" || !j.daten || typeof j.daten.karten !== "object") throw new Error();
+    if (!confirm("Den aktuellen Lernstand durch die Datei ersetzen?")) return;
+    S = Object.assign(standard(), j.daten);
+    sichern();
+    farbeAnwenden();
+    alert("Lernstand importiert.");
+    einstellungen();
+  }).catch(() => alert("Die Datei ist kein gültiger Lernstand."));
+}
+function zuruecksetzen() {
+  if (!confirm("Wirklich den gesamten Lernstand löschen? Alle Fragen landen wieder bei „Neu“, Punkte, Serien und Erfolge werden gelöscht.")) return;
+  const neu = standard();
+  Object.assign(S, { karten: {}, xp: 0, serie: 0, besteSerie: 0, tage: {}, erfolge: {}, pruefungenBestanden: 0,
+    fehlerSerie: 0, willkommen: neu.willkommen });
+  sichern();
+  start();
+}
+
+maskottchenEinbauen();
+start(true);
+
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>
