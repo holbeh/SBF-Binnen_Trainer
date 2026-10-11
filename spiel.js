@@ -53,6 +53,9 @@ const ERFOLGE = [
   { id: "thema", symbol: "🏅", name: "Themenmeister", text: "Ein ganzes Thema sicher (Fach 4–5)",
     test: () => themenImUmfang().some((t) => D.fragen.filter((f) => f.thema === t.id && imUmfang(f)).every((f) => fach(f.nr) >= 4)) },
   { id: "pruefung", symbol: "🏆", name: "Prüfungsreif", text: "Eine Prüfungssimulation bestanden", test: () => S.pruefungenBestanden > 0 },
+  { id: "boegen", symbol: "📋", name: "Bogensammler", text: "Alle Prüfungsbögen deines Umfangs bestanden",
+    test: () => { const erg = S.boegen[S.umfang] || {}; return pruefungsboegen(S.umfang).every((_, i) => erg[i + 1]?.bestanden); } },
+  { id: "mode", symbol: "🎩", name: "Schick gemacht", text: "Das erste Teil im Axolotl-Shop gekauft", test: () => S.besitz.length > 0 },
 ];
 
 // ---------- Tage und Serien ----------
@@ -187,6 +190,7 @@ function spielKarteHtml() {
     </div>
     <div class="woche">${woche}</div>
     <p class="leise klein" style="margin:10px 0 0">${hinweis}</p>
+    <button class="knopf zweit shopknopf" onclick="shop()">🛍️ Axolotl-Shop · ${guthaben()} XP zum Ausgeben</button>
   </div>`;
 }
 
@@ -215,33 +219,167 @@ function meldung(symbol, text) {
 }
 
 // ---------- Axolotl ----------
+// ---------- Aussehen: Farben, Kopfbedeckungen, Extras (im Shop für XP erhältlich) ----------
+// Farbschlüssel: k Körper, h Kopf, r Rand, g Kiemen, s Schwanz, b Bäckchen, a Augen, m Mund
+const AUSSEHEN = {
+  farbe: [
+    { id: "rosa", name: "Rosa (Leuzistisch)", preis: 0, f: { k: "#ffb3cc", h: "#ffc2d6", r: "#d9668f", g: "#ec5f95", s: "#f59ab9", b: "#ff8fb5", a: "#2b1b24", m: "#2b1b24" } },
+    { id: "gold", name: "Goldalbino", preis: 200, f: { k: "#ffd98a", h: "#ffe4a6", r: "#cf9a35", g: "#ff9b66", s: "#ffcd75", b: "#ffb07a", a: "#8a2b3a", m: "#6b3a1f" } },
+    { id: "kupfer", name: "Kupfer", preis: 250, f: { k: "#e3a07a", h: "#ebb18f", r: "#a8613e", g: "#e06a55", s: "#d98f6b", b: "#f2867a", a: "#2b1b14", m: "#2b1b14" } },
+    { id: "wild", name: "Wildling", preis: 300, f: { k: "#8f9460", h: "#9da26b", r: "#585c34", g: "#b9707f", s: "#82874f", b: "#c09080", a: "#18180f", m: "#18180f" } },
+    { id: "lavendel", name: "Lavendel", preis: 350, f: { k: "#c9b8e8", h: "#d8cbf2", r: "#8a73b8", g: "#b277dc", s: "#bdaae2", b: "#e8a6d8", a: "#2a1f3d", m: "#2a1f3d" } },
+    { id: "melanoid", name: "Melanoid (schwarz)", preis: 400, f: { k: "#3f414d", h: "#4a4d5b", r: "#1f2129", g: "#6f5a8a", s: "#3a3c47", b: "#7a6690", a: "#0b0b0f", m: "#f1ecf6" } },
+    { id: "blau", name: "Himmelblau", preis: 450, f: { k: "#a9d6f5", h: "#bfe2fa", r: "#4a8cc0", g: "#5aa9e6", s: "#9fcdf0", b: "#f2a6c8", a: "#14283a", m: "#14283a" } },
+    { id: "leuchten", name: "Leuchtend grün", preis: 800, leuchtet: true, f: { k: "#c4f7a8", h: "#d5fbc0", r: "#46b434", g: "#5fdd4a", s: "#b6f19a", b: "#95ea84", a: "#123012", m: "#123012" } },
+  ],
+  kopf: [
+    { id: "matrose", name: "Matrosenmütze", preis: 0 },
+    { id: "keiner", name: "Ohne Mütze", preis: 0 },
+    { id: "suedwester", name: "Südwester", preis: 150 },
+    { id: "bommel", name: "Bommelmütze", preis: 200 },
+    { id: "stroh", name: "Strohhut", preis: 250 },
+    { id: "party", name: "Partyhut", preis: 300 },
+    { id: "pirat", name: "Piratenhut", preis: 400 },
+    { id: "kapitaen", name: "Kapitänsmütze", preis: 500 },
+    { id: "krone", name: "Krone", preis: 1000 },
+  ],
+  extra: [
+    { id: "keins", name: "Nichts", preis: 0 },
+    { id: "fliege", name: "Fliege", preis: 150 },
+    { id: "schal", name: "Schal", preis: 200 },
+    { id: "brille", name: "Sonnenbrille", preis: 300 },
+    { id: "monokel", name: "Monokel", preis: 350 },
+    { id: "ring", name: "Rettungsring", preis: 400 },
+  ],
+};
+const STANDARD_AUSSEHEN = { farbe: "rosa", kopf: "matrose", extra: "keins" };
+const KATEGORIE_NAME = { farbe: "Farbe", kopf: "Kopfbedeckung", extra: "Extra" };
+const finde = (kat, id) => AUSSEHEN[kat].find((x) => x.id === id) || AUSSEHEN[kat][0];
+
+const KOPF_SVG = {
+  keiner: "",
+  matrose: `<path d="M96 62 Q120 26 144 62 Z" fill="#fff" stroke="#1b3a5c" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="92" y="58" width="56" height="9" rx="4" fill="#1d5a8c"/><circle cx="120" cy="38" r="5" fill="#d0453b"/>`,
+  suedwester: `<path d="M88 60 Q90 28 120 28 Q150 28 152 60 Z" fill="#f5c518" stroke="#a8830c" stroke-width="3"/>
+    <ellipse cx="120" cy="61" rx="60" ry="10" fill="#f5c518" stroke="#a8830c" stroke-width="3"/>`,
+  bommel: `<path d="M90 62 Q90 26 120 26 Q150 26 150 62 Z" fill="#d0453b" stroke="#8a2620" stroke-width="3"/>
+    <path d="M100 40 L100 60 M110 32 L110 60 M120 30 L120 60 M130 32 L130 60 M140 40 L140 60" stroke="#e86a5f" stroke-width="3"/>
+    <rect x="86" y="54" width="68" height="13" rx="6" fill="#fff" stroke="#c9ced3" stroke-width="2"/><circle cx="120" cy="22" r="10" fill="#fff" stroke="#c9ced3" stroke-width="2"/>`,
+  stroh: `<ellipse cx="120" cy="60" rx="66" ry="11" fill="#e8c77a" stroke="#a8843e" stroke-width="3"/>
+    <path d="M92 60 Q93 32 120 32 Q147 32 148 60 Z" fill="#efd28f" stroke="#a8843e" stroke-width="3"/>
+    <rect x="92" y="48" width="56" height="8" fill="#d0453b"/>`,
+  party: `<path d="M102 62 L120 4 L138 62 Z" fill="#6fc3ff" stroke="#2b7bbf" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M110 36 L130 36 M106 50 L134 50 M114 22 L126 22" stroke="#ffd23f" stroke-width="4"/>
+    <circle cx="120" cy="4" r="7" fill="#ff5fa2"/>`,
+  pirat: `<path d="M66 62 Q78 26 120 32 Q162 26 174 62 Q150 48 120 52 Q90 48 66 62 Z" fill="#26262b" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="120" cy="40" r="5.5" fill="#fff"/><path d="M112 48 L128 54 M128 48 L112 54" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>`,
+  kapitaen: `<path d="M82 58 Q84 28 120 26 Q156 28 158 58 Z" fill="#fff" stroke="#1b2a3a" stroke-width="3"/>
+    <rect x="84" y="50" width="72" height="12" rx="3" fill="#1b2a3a"/>
+    <path d="M86 62 Q120 78 154 62 L152 58 Q120 70 88 58 Z" fill="#111"/>
+    <path d="M114 56 L120 44 L126 56" fill="none" stroke="#e3b341" stroke-width="3"/><circle cx="120" cy="40" r="4" fill="#e3b341"/>`,
+  krone: `<path d="M86 62 L90 26 L105 44 L120 18 L135 44 L150 26 L154 62 Z" fill="#f2c230" stroke="#a8780b" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="120" cy="50" r="5" fill="#d0453b"/><circle cx="102" cy="53" r="4" fill="#2e86de"/><circle cx="138" cy="53" r="4" fill="#2e86de"/>`,
+};
+// Extras: "vorn" wird über dem Kopf gezeichnet, "hinten" zwischen Körper und Kopf
+const EXTRA_SVG = {
+  keins: {},
+  fliege: { vorn: `<path d="M120 150 L101 139 L101 161 Z M120 150 L139 139 L139 161 Z" fill="#d0453b" stroke="#8a2620" stroke-width="2.5" stroke-linejoin="round"/><circle cx="120" cy="150" r="5.5" fill="#a8322a"/>` },
+  schal: { vorn: `<path d="M68 136 Q120 162 172 136 L174 148 Q120 176 66 148 Z" fill="#2e86de" stroke="#1a5a9c" stroke-width="2.5"/>
+    <path d="M148 152 L156 182 L170 178 L162 148 Z" fill="#2e86de" stroke="#1a5a9c" stroke-width="2.5"/>
+    <path d="M154 166 L166 163 M157 174 L168 171" stroke="#fff" stroke-width="2.5"/>` },
+  brille: { vorn: `<rect x="81" y="89" width="32" height="21" rx="9" fill="#111"/><rect x="127" y="89" width="32" height="21" rx="9" fill="#111"/>
+    <path d="M113 97 L127 97" stroke="#111" stroke-width="3.5"/><path d="M87 94 L97 94 M133 94 L143 94" stroke="#fff" stroke-width="2.5" opacity=".55" stroke-linecap="round"/>` },
+  monokel: { vorn: `<circle cx="143" cy="100" r="14" fill="rgba(255,255,255,.25)" stroke="#c9a227" stroke-width="3"/>
+    <path d="M155 108 Q166 130 158 150" fill="none" stroke="#c9a227" stroke-width="2" stroke-dasharray="3 3"/>` },
+  ring: { hinten: `<ellipse cx="120" cy="160" rx="50" ry="15" fill="none" stroke="#fff" stroke-width="10"/>
+    <ellipse cx="120" cy="160" rx="50" ry="15" fill="none" stroke="#d0453b" stroke-width="10" stroke-dasharray="20 19"/>` },
+};
+
+function aktuellesAussehen() {
+  return Object.assign({}, STANDARD_AUSSEHEN, (typeof S !== "undefined" && S && S.aussehen) || {});
+}
+
 // stimmung: "froh" (Lob) oder "aufmunternd" (mitfühlende Augenbrauen, Herz)
-function axolotlSvg(stimmung = "froh") {
+function axolotlSvg(stimmung = "froh", aussehen = aktuellesAussehen()) {
+  const farbe = finde("farbe", aussehen.farbe);
+  const c = farbe.f;
+  const extra = EXTRA_SVG[aussehen.extra] || {};
   const mitfuehlend = stimmung === "aufmunternd";
-  return `<svg class="axolotl" viewBox="0 0 240 200" aria-hidden="true">
-  <path d="M160 150 Q205 150 226 118 Q212 162 166 170 Z" fill="#f59ab9" stroke="#d9668f" stroke-width="3" stroke-linejoin="round"/>
-  <ellipse cx="120" cy="150" rx="54" ry="30" fill="#ffb3cc" stroke="#d9668f" stroke-width="3"/>
-  <ellipse cx="88" cy="177" rx="11" ry="7" fill="#ffb3cc" stroke="#d9668f" stroke-width="3"/>
-  <ellipse cx="152" cy="177" rx="11" ry="7" fill="#ffb3cc" stroke="#d9668f" stroke-width="3"/>
-  <g class="kieme"><path d="M70 92 Q36 68 26 46" /><path d="M64 104 Q28 98 14 86" /><path d="M66 116 Q34 126 22 136" /></g>
-  <g transform="translate(240 0) scale(-1 1)"><g class="kieme"><path d="M70 92 Q36 68 26 46" /><path d="M64 104 Q28 98 14 86" /><path d="M66 116 Q34 126 22 136" /></g></g>
-  <ellipse cx="120" cy="102" rx="62" ry="48" fill="#ffc2d6" stroke="#d9668f" stroke-width="3"/>
-  <ellipse cx="82" cy="118" rx="11" ry="7" fill="#ff8fb5" opacity=".75"/>
-  <ellipse cx="158" cy="118" rx="11" ry="7" fill="#ff8fb5" opacity=".75"/>
-  <g class="augen"><circle cx="97" cy="100" r="8.5" fill="#2b1b24"/><circle cx="143" cy="100" r="8.5" fill="#2b1b24"/>
+  const kieme = `<g class="kieme" stroke="${c.g}" stroke-width="9" stroke-linecap="round" fill="none"><path d="M70 92 Q36 68 26 46" /><path d="M64 104 Q28 98 14 86" /><path d="M66 116 Q34 126 22 136" /></g>`;
+  return `<svg class="axolotl${farbe.leuchtet ? " leuchtet" : ""}" viewBox="0 -8 240 208" aria-hidden="true">
+  <path d="M160 150 Q205 150 226 118 Q212 162 166 170 Z" fill="${c.s}" stroke="${c.r}" stroke-width="3" stroke-linejoin="round"/>
+  <ellipse cx="120" cy="150" rx="54" ry="30" fill="${c.k}" stroke="${c.r}" stroke-width="3"/>
+  <ellipse cx="88" cy="177" rx="11" ry="7" fill="${c.k}" stroke="${c.r}" stroke-width="3"/>
+  <ellipse cx="152" cy="177" rx="11" ry="7" fill="${c.k}" stroke="${c.r}" stroke-width="3"/>
+  ${extra.hinten || ""}
+  ${kieme}
+  <g transform="translate(240 0) scale(-1 1)">${kieme}</g>
+  <ellipse cx="120" cy="102" rx="62" ry="48" fill="${c.h}" stroke="${c.r}" stroke-width="3"/>
+  <ellipse cx="82" cy="118" rx="11" ry="7" fill="${c.b}" opacity=".75"/>
+  <ellipse cx="158" cy="118" rx="11" ry="7" fill="${c.b}" opacity=".75"/>
+  <g class="augen"><circle cx="97" cy="100" r="8.5" fill="${c.a}"/><circle cx="143" cy="100" r="8.5" fill="${c.a}"/>
     <circle cx="100" cy="96.5" r="3" fill="#fff"/><circle cx="146" cy="96.5" r="3" fill="#fff"/></g>
   ${mitfuehlend
-    ? `<path d="M85 86 Q94 79 106 80" stroke="#2b1b24" stroke-width="3" fill="none" stroke-linecap="round"/>
-       <path d="M155 86 Q146 79 134 80" stroke="#2b1b24" stroke-width="3" fill="none" stroke-linecap="round"/>
-       <path d="M110 121 Q120 128 130 121" stroke="#2b1b24" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    ? `<path d="M85 86 Q94 79 106 80" stroke="${c.m}" stroke-width="3" fill="none" stroke-linecap="round"/>
+       <path d="M155 86 Q146 79 134 80" stroke="${c.m}" stroke-width="3" fill="none" stroke-linecap="round"/>
+       <path d="M110 121 Q120 128 130 121" stroke="${c.m}" stroke-width="3.5" fill="none" stroke-linecap="round"/>
        <path class="herz" d="M196 70 c-6 -10 -20 -4 -14 8 l14 12 l14 -12 c6 -12 -8 -18 -14 -8 z" fill="#e8476f"/>`
-    : `<path d="M107 118 Q120 131 133 118" stroke="#2b1b24" stroke-width="3.5" fill="none" stroke-linecap="round"/>`}
-  <path d="M96 62 Q120 26 144 62 Z" fill="#fff" stroke="#1b3a5c" stroke-width="3" stroke-linejoin="round"/>
-  <rect x="92" y="58" width="56" height="9" rx="4" fill="#1d5a8c"/>
-  <circle cx="120" cy="38" r="5" fill="#d0453b"/>
+    : `<path d="M107 118 Q120 131 133 118" stroke="${c.m}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`}
+  ${extra.vorn || ""}
+  ${KOPF_SVG[aussehen.kopf] ?? KOPF_SVG.matrose}
 </svg>`;
 }
-const AXOLOTL_SVG = axolotlSvg("froh");
+
+// ---------- Shop ----------
+const guthaben = () => S.xp - S.ausgegeben;
+const besitzt = (kat, id) => finde(kat, id).preis === 0 || S.besitz.includes(`${kat}:${id}`);
+
+function shop(neuZeichnen) {
+  tasten = null;
+  if (!neuZeichnen) ansichtWechsel();
+  kopf("Axolotl-Shop", `${guthaben()} XP zum Ausgeben`, zurueckKnopf("Fertig"));
+  const a = aktuellesAussehen();
+  $("#app").innerHTML = `<div class="karte shop-vorschau">${axolotlSvg("froh", a)}
+      <div><b>Dein Axolotl</b>
+      <p class="leise klein" style="margin:4px 0 0">Gekauftes bleibt für immer deins. Deine Level und Punkte
+        sinken durch Einkäufe nicht – du gibst nur gesammelte XP aus.</p>
+      <div class="guthaben">💰 ${guthaben()} XP</div></div></div>
+    ${Object.keys(AUSSEHEN).map((kat) => `<h2>${KATEGORIE_NAME[kat]}</h2>
+      <div class="shop-raster">${AUSSEHEN[kat].map((x) => {
+        const angelegt = a[kat] === x.id;
+        const hat = besitzt(kat, x.id);
+        const status = angelegt ? "✓ Angelegt" : hat ? "Anlegen" : `${x.preis} XP`;
+        const zuTeuer = !hat && x.preis > guthaben();
+        return `<button class="shop-teil${angelegt ? " an" : ""}${zuTeuer ? " teuer" : ""}" onclick="shopWaehlen('${kat}', '${x.id}')">
+          ${axolotlSvg("froh", Object.assign({}, a, { [kat]: x.id }))}
+          <b>${esc(x.name)}</b><span>${status}</span></button>`;
+      }).join("")}</div>`).join("")}`;
+}
+
+function shopWaehlen(kat, id) {
+  const teil = finde(kat, id);
+  if (!besitzt(kat, id)) {
+    if (teil.preis > guthaben()) {
+      meldung("💰", `Für „${teil.name}“ fehlen dir noch ${teil.preis - guthaben()} XP. Weiterlernen lohnt sich!`);
+      return;
+    }
+    if (!confirm(`„${teil.name}“ für ${teil.preis} XP kaufen?`)) return;
+    S.ausgegeben += teil.preis;
+    S.besitz.push(`${kat}:${id}`);
+    meldung("🛍️", `Gekauft: ${teil.name}`);
+    audioBereit();
+    antwortKlang(true);
+  }
+  S.aussehen = Object.assign(aktuellesAussehen(), { [kat]: id });
+  erfolgePruefen();
+  sichern();
+  maskottchenAktualisieren();
+  maskottchenReagieren("froh");
+  const y = window.scrollY;
+  shop(true);
+  window.scrollTo(0, y);
+}
+
 
 function belohnungenZeigen() {
   if (!warteschlange.length || $(".belohnung")) return;
@@ -435,8 +573,12 @@ function maskottchenEinbauen() {
   const aq = document.createElement("div");
   aq.className = "aquarium";
   aq.innerHTML = `<button id="maskottchen" class="maskottchen" onclick="maskottchenTippen()" aria-label="Axolotl-Maskottchen antippen">
-    <span class="richtung"><span class="wipp">${AXOLOTL_SVG}</span></span></button>`;
+    <span class="richtung"><span class="wipp">${axolotlSvg()}</span></span></button>`;
   document.querySelector("header").appendChild(aq);
+}
+function maskottchenAktualisieren() {
+  const w = document.querySelector("#maskottchen .wipp");
+  if (w) w.innerHTML = axolotlSvg();
 }
 function maskottchenReagieren(art) {
   const w = document.querySelector("#maskottchen .wipp");

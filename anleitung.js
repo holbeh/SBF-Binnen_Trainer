@@ -44,8 +44,12 @@ window.SBF_ANLEITUNG = [
   },
   {
     titel: "Prüfung simulieren",
-    html: `<p>Die Prüfungssimulation stellt einen zufälligen Fragebogen wie in der echten Prüfung zusammen,
-      passend zu deinem Prüfungsumfang. Du siehst erst am Ende, was richtig war.
+    html: `<p>Unter <b>Prüfung simulieren</b> wählst du einen <b>Übungsbogen</b> (Bogen 1, 2, 3 …) oder einen
+      zufällig zusammengestellten Bogen. Jeder Bogen hat so viele Fragen wie die echte Prüfung in deinem Umfang,
+      und alle Bögen zusammen enthalten jede Frage mindestens einmal. Die Bögen bleiben immer gleich, so kannst du
+      sie nacheinander „abarbeiten“. Bestandene Bögen werden grün, nicht bestandene rot markiert, mit deinem besten Ergebnis.
+      Es sind <b>nicht</b> die amtlichen Prüfungsbögen; die sind nicht öffentlich.</p>
+      <p>Du siehst erst am Ende, was richtig war.
       Mit <b>Zurück</b> und <b>Weiter</b> kannst du zwischen den Fragen wechseln, mit <b>Abgeben</b> wertest du aus.</p>
       <p>Die falsch beantworteten Fragen kannst du danach direkt lernen. Die Prüfung verändert den Lernkasten nicht.</p>`,
   },
@@ -73,6 +77,18 @@ window.SBF_ANLEITUNG = [
         Den Ton kannst du in den Einstellungen ausschalten.</li>
       <li><b>Erfolge:</b> Für besondere Leistungen gibt es Abzeichen, z. B. „7 Tage in Folge“.</li>
     </ul>`,
+  },
+  {
+    titel: "Der Axolotl-Shop",
+    html: `<p>Für deine gesammelten XP kannst du dein Axolotl verschönern: 8 Farben (z. B. Goldalbino,
+      Melanoid oder leuchtend grün), 9 Kopfbedeckungen (von der Bommelmütze bis zur Krone) und Extras wie
+      Fliege, Sonnenbrille oder Rettungsring.</p>
+      <ul>
+        <li>Den Shop öffnest du auf der Übersicht in der Punkte-Karte (🛍️ Axolotl-Shop).</li>
+        <li>Tippe ein Teil an: Hast du genug XP, kannst du es kaufen. Gekaufte Teile kannst du jederzeit an- und ablegen.</li>
+        <li>Dein Level sinkt durch Einkäufe <b>nicht</b>. Du gibst nur gesammelte XP aus.</li>
+        <li>Das Maskottchen oben trägt immer dein aktuelles Outfit.</li>
+      </ul>`,
   },
   {
     titel: "Tägliche Erinnerung",

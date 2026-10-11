@@ -273,7 +273,8 @@ select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(
 .bel-titel { font-size: 22px; font-weight: 700; margin-top: 6px; }
 .bel-xp { display: inline-block; margin: 8px 0 14px; padding: 4px 14px; border-radius: 99px; background: var(--ok-bg); color: var(--ok); font-weight: 700; font-size: 18px; }
 .axolotl { animation: huepfen 1s ease-in-out infinite; overflow: visible; }
-.axolotl .kieme path { stroke: #ec5f95; stroke-width: 9; stroke-linecap: round; fill: none; }
+.axolotl .kieme path { stroke-width: 9; stroke-linecap: round; fill: none; }
+.axolotl.leuchtet { filter: drop-shadow(0 0 5px #7dff6a) drop-shadow(0 0 10px rgba(125,255,106,.6)); }
 .axolotl .kieme { transform-box: fill-box; transform-origin: 100% 55%; animation: wedeln 1.1s ease-in-out infinite; }
 .axolotl .augen { transform-box: fill-box; transform-origin: center; animation: blinzeln 3.6s infinite; }
 .blasen { position: absolute; inset: 0; pointer-events: none; }
@@ -301,7 +302,7 @@ select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(
   animation: schwimmen 30s ease-in-out infinite; z-index: 1; }
 .maskottchen .richtung { display: block; animation: wenden 30s step-end infinite; }
 .maskottchen .wipp { display: block; animation: wippen 1.8s ease-in-out infinite; }
-.maskottchen .axolotl { width: 54px; height: 45px; animation: none; display: block; }
+.maskottchen .axolotl { width: 54px; height: auto; animation: none; display: block; }
 .maskottchen .wipp.froh { animation: freuen .55s ease-out 2; }
 .maskottchen .wipp.traurig { animation: schuetteln .45s ease-in-out 2; }
 @keyframes schwimmen { 0% { left: 0; } 46% { left: calc(100% - 54px); } 54% { left: calc(100% - 54px); } 100% { left: 0; } }
@@ -320,6 +321,30 @@ select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(
 .melden { display: inline-block; font-size: 14px; color: var(--muted); margin: 0 0 12px; }
 .ueber p { margin: 0 0 10px; }
 .ueber h3 { font-size: 16px; margin: 0 0 6px; }
+
+/* Shop */
+.shop-vorschau { display: flex; gap: 14px; align-items: center; }
+.shop-vorschau .axolotl { width: 130px; flex: none; }
+.guthaben { display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 99px; background: var(--ok-bg); color: var(--ok); font-weight: 700; }
+.shop-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.shop-teil { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 8px 4px; text-align: center; }
+.shop-teil .axolotl { width: 76px; animation: none; display: block; margin: 0 auto 4px; }
+.shop-teil b { display: block; font-size: 13px; line-height: 1.2; }
+.shop-teil span { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.shop-teil.an { border-color: var(--ok); background: var(--ok-bg); }
+.shop-teil.an span { color: var(--ok); font-weight: 700; }
+.shop-teil.teuer { opacity: .55; }
+.shopknopf { margin-top: 12px; }
+
+/* Prüfungsbögen */
+.boegen { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.bogen { background: var(--panel); border: 2px solid var(--line); border-radius: 12px; padding: 10px 4px; text-align: center; }
+.bogen b { display: block; font-size: 20px; }
+.bogen span { display: block; font-size: 12px; color: var(--muted); }
+.bogen.ok { border-color: var(--ok); background: var(--ok-bg); }
+.bogen.ok span { color: var(--ok); }
+.bogen.nein { border-color: var(--bad); }
+.bogen.nein span { color: var(--bad); }
 
 /* Anleitung */
 details.abschnitt { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
@@ -382,7 +407,8 @@ function standard() {
     zeigeErklaerung: true, zeigeStichworte: true, hilfeWann: "immer", karten: {},
     // Gamification
     xp: 0, serie: 0, besteSerie: 0, tage: {}, tagesziel: 20, ton: true, erinnerung: "19:00",
-    erfolge: {}, pruefungenBestanden: 0, willkommen: true, fehlerSerie: 0, stimme: "quieken", antwortTon: true };
+    erfolge: {}, pruefungenBestanden: 0, willkommen: true, fehlerSerie: 0, stimme: "quieken", antwortTon: true,
+    ausgegeben: 0, besitz: [], aussehen: { farbe: "rosa", kopf: "matrose", extra: "keins" }, boegen: {} };
 }
 let S = (() => {
   try {
@@ -515,7 +541,7 @@ function start(ohneHistory) {
   plaketteSetzen(faelligListe.length);
   let h = "";
   if (S.willkommen) {
-    h += `<div class="karte willkommen">${AXOLOTL_SVG}<div>
+    h += `<div class="karte willkommen">${axolotlSvg()}<div>
       <b>Willkommen an Bord!</b>
       <p class="leise" style="margin:4px 0 10px">Ich bin dein Lern-Axolotl und schwimme oben für dich herum – tipp mich ruhig an!
         Lies kurz die Anleitung, dann geht's los.</p>
@@ -534,7 +560,7 @@ function start(ohneHistory) {
       ? `<button class="knopf" onclick="lernen(null)">Lernen – ${Math.min(faelligListe.length, rundeGroesse())} Fragen</button>`
       : `<p class="leise" style="margin:0 0 10px">Für heute ist alles erledigt. Morgen sind wieder Fragen fällig.</p>
          <button class="knopf" onclick="ueben(null)">Trotzdem weiterüben</button>`}
-    <button class="knopf zweit" onclick="pruefungStart()">Prüfung simulieren</button>
+    <button class="knopf zweit" onclick="pruefungAuswahl()">Prüfung simulieren</button>
   </div>`;
 
   h += `<h2>Lernkasten</h2><div class="karte"><div class="kasten">
@@ -707,14 +733,83 @@ function rundeEnde() {
 }
 
 // ---------- Prüfungssimulation ----------
-function pruefungStart() {
+// Feste, nummerierte Übungsbögen je Prüfungsumfang. Sie entstehen mit einem festen
+// Zufallsstartwert, sind also auf allen Geräten gleich, und decken zusammen jede Frage
+// des Umfangs mindestens einmal ab. (Die amtlichen Bögen sind nicht frei veröffentlicht.)
+function zufallsgenerator(text) {
+  let h = 2166136261;
+  for (const z of text) h = Math.imul(h ^ z.charCodeAt(0), 16777619);
+  return () => { // mulberry32
+    h = (h + 0x6D2B79F5) | 0;
+    let t = Math.imul(h ^ (h >>> 15), 1 | h);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const bogenCache = {};
+function pruefungsboegen(umfangId) {
+  if (bogenCache[umfangId]) return bogenCache[umfangId];
+  const u = UMFAENGE[umfangId];
+  const teile = Object.entries(u.pruefung);
+  const pools = teile.map(([teil]) => D.fragen.filter((f) => f.teil === teil).map((f) => f.nr));
+  const anzahl = Math.max(...teile.map(([, [n]], i) => Math.ceil(pools[i].length / n)));
+  const boegen = Array.from({ length: anzahl }, () => []);
+  teile.forEach(([teil, [n]], i) => {
+    const zufall = zufallsgenerator(`${umfangId}/${teil}`);
+    const misch = (a) => { a = a.slice(); for (let j = a.length - 1; j > 0; j--) { const k = Math.floor(zufall() * (j + 1)); [a[j], a[k]] = [a[k], a[j]]; } return a; };
+    let vorrat = [];
+    boegen.forEach((bogen) => {
+      const hier = [];
+      while (hier.length < n) {
+        if (!vorrat.length) vorrat = misch(pools[i]);
+        const idx = vorrat.findIndex((nr) => !hier.includes(nr));
+        if (idx < 0) { vorrat = vorrat.concat(misch(pools[i])); continue; }
+        hier.push(vorrat.splice(idx, 1)[0]);
+      }
+      bogen.push(...hier.sort((a, b) => a - b));
+    });
+  });
+  return (bogenCache[umfangId] = boegen);
+}
+
+function pruefungAuswahl() {
+  tasten = null;
+  ansichtWechsel();
   const u = umfang();
-  const liste = [];
-  for (const [teil, [anzahl]] of Object.entries(u.pruefung)) {
-    liste.push(...mischen(D.fragen.filter((f) => f.teil === teil)).slice(0, anzahl).sort((a, b) => a.nr - b.nr));
+  const boegen = pruefungsboegen(S.umfang);
+  const erg = S.boegen[S.umfang] || {};
+  const bestanden = boegen.filter((_, i) => erg[i + 1]?.bestanden).length;
+  const teile = Object.entries(u.pruefung).map(([t, [n, min]]) => `${n} ${TEILNAME[t]}${min !== undefined ? ` (min. ${min} richtig)` : ""}`).join(", ");
+  kopf("Prüfung simulieren", u.name, zurueckKnopf());
+  $("#app").innerHTML = `<div class="karte">
+      <p style="margin:0 0 6px"><b>Jeder Bogen:</b> ${esc(teile)}${u.gesamt !== undefined ? `, mindestens ${u.gesamt} richtig insgesamt` : ""}.</p>
+      <p class="leise klein" style="margin:0 0 12px">${boegen.length} feste Übungsbögen decken zusammen alle Fragen ab.
+        Es sind <b>nicht</b> die amtlichen Prüfungsbögen; die sind nicht öffentlich.</p>
+      <button class="knopf" onclick="pruefungStart(0)">Zufälliger Bogen</button>
+    </div>
+    <h2>Übungsbögen <span style="text-transform:none;letter-spacing:0">(${bestanden} von ${boegen.length} bestanden)</span></h2>
+    <div class="boegen">${boegen.map((b, i) => {
+      const e = erg[i + 1];
+      const klasse = e ? (e.bestanden ? " ok" : " nein") : "";
+      const text = e ? `${e.bestanden ? "✓" : "✗"} ${e.beste}/${b.length}` : "noch offen";
+      return `<button class="bogen${klasse}" onclick="pruefungStart(${i + 1})"><span>Bogen</span><b>${i + 1}</b><span>${text}</span></button>`;
+    }).join("")}</div>`;
+  window.scrollTo(0, 0);
+}
+
+// bogen = 0: zufällig zusammengestellt, sonst Nummer des Übungsbogens
+function pruefungStart(bogen = 0) {
+  const u = umfang();
+  let liste = [];
+  if (bogen) {
+    liste = pruefungsboegen(S.umfang)[bogen - 1].map((nr) => NACH_NR.get(nr));
+  } else {
+    for (const [teil, [anzahl]] of Object.entries(u.pruefung)) {
+      liste.push(...mischen(D.fragen.filter((f) => f.teil === teil)).slice(0, anzahl).sort((a, b) => a.nr - b.nr));
+    }
   }
-  sitzung = { modus: "pruefung", titel: "Prüfung: " + u.name, liste, pos: 0, wahl: {},
-    reihen: liste.map(() => mischen([0, 1, 2, 3])) };
+  sitzung = { modus: "pruefung", titel: bogen ? `Prüfungsbogen ${bogen}` : "Zufälliger Prüfungsbogen", bogen,
+    liste, pos: 0, wahl: {}, reihen: liste.map(() => mischen([0, 1, 2, 3])) };
   ansichtWechsel();
   pruefungFrage();
 }
@@ -783,18 +878,24 @@ function pruefungAbgeben() {
     zeilen += `<div class="teilerg"><span>Gesamt</span><b style="color:var(--${ok ? "ok" : "bad"})">${gesamt} / ${s.liste.length} <span class="leise">(min. ${u.gesamt})</span></b></div>`;
   }
   s.falschListe = falsch.map((x) => x.f);
+  if (s.bogen) {
+    const erg = (S.boegen[S.umfang] = S.boegen[S.umfang] || {});
+    const alt = erg[s.bogen] || { beste: 0, bestanden: false, versuche: 0 };
+    erg[s.bogen] = { beste: Math.max(alt.beste, gesamt), bestanden: alt.bestanden || bestanden, versuche: alt.versuche + 1 };
+  }
   audioBereit();
   spielPruefung(Object.keys(s.wahl).length, gesamt, bestanden);
   setTimeout(belohnungenZeigen, 700);
   tasten = null;
-  kopf("Prüfungsergebnis", u.name, zurueckKnopf());
+  kopf("Prüfungsergebnis", s.bogen ? `Prüfungsbogen ${s.bogen} · ${u.name}` : u.name, zurueckKnopf());
   $("#app").innerHTML = `<div class="karte">
     <p class="status ${bestanden ? "ok" : "bad"}">${bestanden ? "Bestanden" : "Nicht bestanden"}</p>
     <p class="leise" style="margin:0 0 8px">${gesamt} von ${s.liste.length} richtig</p>
     ${zeilen}
   </div>
   ${falsch.length ? `<button class="knopf" onclick="fehlerLernen()">Die ${falsch.length} falschen Fragen jetzt lernen</button>` : ""}
-  <button class="knopf zweit" onclick="pruefungStart()">Neuer Prüfungsbogen</button>
+  ${s.bogen ? `<button class="knopf zweit" onclick="pruefungStart(${s.bogen})">Bogen ${s.bogen} wiederholen</button>` : ""}
+  <button class="knopf zweit" onclick="pruefungAuswahl()">Anderen Prüfungsbogen wählen</button>
   ${falsch.length ? `<h2>Falsch beantwortet</h2><div class="karte">${falsch.map(({ f, wahl }) => `<div class="fehler">
     <p><b>${f.nr}. ${fragetextHtml(f)}</b></p>
     ${wahl !== undefined ? `<p style="color:var(--bad)">✗ ${esc(f.antworten[wahl])}</p>` : `<p class="leise">nicht beantwortet</p>`}
@@ -813,7 +914,7 @@ function anleitung() {
   ansichtWechsel();
   if (S.willkommen) { S.willkommen = false; sichern(); }
   kopf("Anleitung", "So funktioniert der Trainer", zurueckKnopf("Fertig"));
-  $("#app").innerHTML = `<div class="karte willkommen">${AXOLOTL_SVG}
+  $("#app").innerHTML = `<div class="karte willkommen">${axolotlSvg()}
       <p style="margin:0">Ahoi! Hier erfährst du alles über den Trainer. Tippe einen Abschnitt an, um ihn aufzuklappen.</p></div>
     ${window.SBF_ANLEITUNG.map((a, i) => `<details class="abschnitt"${i < 2 ? " open" : ""}>
       <summary>${esc(a.titel)}</summary><div>${a.html}</div></details>`).join("")}
@@ -826,7 +927,7 @@ function ueber() {
   tasten = null;
   ansichtWechsel();
   kopf("Über die App", `Version ${APP.version}`, zurueckKnopf("Fertig"));
-  $("#app").innerHTML = `<div class="karte willkommen">${AXOLOTL_SVG}<div>
+  $("#app").innerHTML = `<div class="karte willkommen">${axolotlSvg()}<div>
       <b>SBF-Binnen Trainer</b><br>Eine App von ${APP.autor}<br>
       <a href="mailto:${APP.email}">${APP.email}</a></div></div>
     <div class="karte ueber">
@@ -983,7 +1084,8 @@ function zuruecksetzen() {
   if (!confirm("Wirklich den gesamten Lernstand löschen? Alle Fragen landen wieder bei „Neu“, Punkte, Serien und Erfolge werden gelöscht.")) return;
   const neu = standard();
   Object.assign(S, { karten: {}, xp: 0, serie: 0, besteSerie: 0, tage: {}, erfolge: {}, pruefungenBestanden: 0,
-    fehlerSerie: 0, willkommen: neu.willkommen });
+    fehlerSerie: 0, willkommen: neu.willkommen, ausgegeben: 0, besitz: [], aussehen: neu.aussehen, boegen: {} });
+  maskottchenAktualisieren();
   sichern();
   start();
 }

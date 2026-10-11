@@ -2,7 +2,7 @@
 // damit der Trainer offline läuft.
 // Strategie: App-Code (HTML, JS, CSS) zuerst aus dem Netz – Updates sind so sofort da –,
 // ohne Netz aus dem Speicher. Bilder, Töne und Schrift ändern sich nie: direkt aus dem Speicher.
-const CACHE = "sbf-binnen-v6";
+const CACHE = "sbf-binnen-v7";
 self.window = self;
 importScripts("fragen.js", "klang/texte.js"); // liefern die Listen der Bilder und Sprachaufnahmen
 const BILDER = [...new Set(self.SBF_DATEN.fragen.flatMap((f) => [...f.bilder, ...f.inline]))];
