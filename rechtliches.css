@@ -1,0 +1,33 @@
+/* Gemeinsames Aussehen für impressum.html und datenschutz.html */
+:root {
+  --bg: #eef2f4; --panel: #ffffff; --ink: #12202a; --muted: #5b6b75; --line: #d5dee3;
+  --accent: #0f5f8c; --head: #0f2a3d; --head-ink: #f2f6f8; --fehlt: #fff1a8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0b141a; --panel: #142129; --ink: #e8eef1; --muted: #93a4ad; --line: #26363f;
+    --accent: #5fb0e0; --head: #08121a; --head-ink: #e8eef1; --fehlt: #5a4b00;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b141a; --panel: #142129; --ink: #e8eef1; --muted: #93a4ad; --line: #26363f;
+  --accent: #5fb0e0; --head: #08121a; --head-ink: #e8eef1; --fehlt: #5a4b00;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 "Atkinson Hyperlegible", -apple-system, "Helvetica Neue", Arial, sans-serif; }
+header { background: var(--head); color: var(--head-ink); padding: calc(env(safe-area-inset-top) + 14px) 16px 14px; }
+header div { max-width: 720px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+header h1 { font-size: 20px; margin: 0; }
+header a { color: var(--head-ink); border: 1px solid rgba(255,255,255,.3); border-radius: 10px; padding: 6px 12px; text-decoration: none; font-size: 15px; white-space: nowrap; }
+main { max-width: 720px; margin: 0 auto; padding: 16px 16px calc(env(safe-area-inset-bottom) + 32px); }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+h2 { font-size: 18px; margin: 0 0 8px; }
+h3 { font-size: 16px; margin: 16px 0 6px; }
+p, li { margin: 0 0 10px; }
+ul { padding-left: 22px; margin: 0 0 10px; }
+a { color: var(--accent); }
+.leise { color: var(--muted); font-size: 15px; }
+/* Platzhalter, die noch ausgefüllt werden müssen – fallen gelb auf */
+mark.fehlt { background: var(--fehlt); color: inherit; padding: 0 3px; border-radius: 3px; }

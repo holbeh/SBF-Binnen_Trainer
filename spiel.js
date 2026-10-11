@@ -250,6 +250,7 @@ const AUSSEHEN = {
     { id: "brille", name: "Sonnenbrille", preis: 300 },
     { id: "monokel", name: "Monokel", preis: 350 },
     { id: "ring", name: "Rettungsring", preis: 400 },
+    { id: "weste", name: "Rettungsweste", preis: 250 },
   ],
 };
 const STANDARD_AUSSEHEN = { farbe: "rosa", kopf: "matrose", extra: "keins" };
@@ -291,6 +292,12 @@ const EXTRA_SVG = {
     <path d="M113 97 L127 97" stroke="#111" stroke-width="3.5"/><path d="M87 94 L97 94 M133 94 L143 94" stroke="#fff" stroke-width="2.5" opacity=".55" stroke-linecap="round"/>` },
   monokel: { vorn: `<circle cx="143" cy="100" r="14" fill="rgba(255,255,255,.25)" stroke="#c9a227" stroke-width="3"/>
     <path d="M155 108 Q166 130 158 150" fill="none" stroke="#c9a227" stroke-width="2" stroke-dasharray="3 3"/>` },
+  weste: { hinten: `<ellipse cx="120" cy="140" rx="54" ry="14" fill="#ff7a1a" stroke="#c4560a" stroke-width="3"/>
+    <path d="M68 136 Q64 160 80 180 L160 180 Q176 160 172 136 Q150 150 120 150 Q90 150 68 136 Z" fill="#ff7a1a" stroke="#c4560a" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M120 150 L120 180" stroke="#c4560a" stroke-width="2.5"/>
+    <rect x="84" y="152" width="7" height="22" rx="2" fill="#e9eef2"/><rect x="149" y="152" width="7" height="22" rx="2" fill="#e9eef2"/>
+    <rect x="70" y="163" width="100" height="6" rx="2" fill="#2b2f36"/>
+    <rect x="113" y="160" width="14" height="12" rx="2" fill="#c9ced3" stroke="#2b2f36" stroke-width="2"/>` },
   ring: { hinten: `<ellipse cx="120" cy="160" rx="50" ry="15" fill="none" stroke="#fff" stroke-width="10"/>
     <ellipse cx="120" cy="160" rx="50" ry="15" fill="none" stroke="#d0453b" stroke-width="10" stroke-dasharray="20 19"/>` },
 };

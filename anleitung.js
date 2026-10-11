@@ -141,6 +141,7 @@ window.SBF_ANLEITUNG = [
       <p>Die Prüfungsfragen stammen aus dem amtlichen Katalog. Erklärungen und Stichworte sind selbst verfasst
       und nicht amtlich. Für die Richtigkeit wird keine Gewähr übernommen. Maßgeblich sind allein der amtliche
       Fragenkatalog und die geltenden Vorschriften.
-      <a href="#" onclick="ueber(); return false">Vollständiger Haftungsausschluss</a></p>`,
+      <a href="#" onclick="ueber(); return false">Vollständiger Haftungsausschluss</a> ·
+      <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p>`,
   },
 ];

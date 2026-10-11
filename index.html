@@ -476,14 +476,16 @@ function lernreihenfolge(fragen) {
 // ---------- Hilfen ----------
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// Lädt ein Bild nicht (z. B. Speicherproblem auf dem Handy), einmal direkt vom Server holen
+const BILD_NOTFALL = `onerror="if (!this.dataset.nochmal) { this.dataset.nochmal = 1; this.src = this.getAttribute('src') + '?direkt=1'; }"`;
 function fragetextHtml(f) {
   return esc(f.frage).replace(/\n/g, "<br>")
-    .replace(/\{(\d+)\}/g, (_, i) => `<img class="inl" src="${f.inline[i]}" alt="Symbol">`);
+    .replace(/\{(\d+)\}/g, (_, i) => `<img class="inl" src="${f.inline[i]}" alt="Symbol" ${BILD_NOTFALL}>`);
 }
 function abbildungHtml(f) {
   if (!f.bilder.length) return "";
   // Die ELWIS-Grafiken sind sehr klein: auf das Doppelte vergrößern, aber nicht breiter als die Spalte
-  return `<div class="abbildung">${f.bilder.map((b) => `<img src="${b}" alt="Abbildung zur Frage"
+  return `<div class="abbildung">${f.bilder.map((b) => `<img src="${b}" alt="Abbildung zur Frage" ${BILD_NOTFALL}
     onload="this.style.width = Math.min(this.naturalWidth * 2, this.parentNode.clientWidth - 28) + 'px'">`).join("")}</div>`;
 }
 function meldenLink(f) {
@@ -582,7 +584,8 @@ function start(ohneHistory) {
   }
   h += erfolgeHtml();
   h += `<footer>Eine App von ${APP.autor} · <a href="mailto:${APP.email}">${APP.email}</a><br>
-    <a href="#" onclick="ueber(); return false">Über die App · Haftungsausschluss · Datenschutz</a><br><br>
+    <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a> ·
+    <a href="#" onclick="ueber(); return false">Über die App</a><br><br>
     ${fragen.length} Fragen im gewählten Umfang · Quelle:
     <a href="https://www.elwis.de/DE/Sportschifffahrt/Sportbootfuehrerscheine/Fragenkatalog-Binnen/Fragenkatalog-Binnen-node.html" target="_blank" rel="noopener">${esc(D.stand)}</a></footer>`;
   $("#app").innerHTML = h;
@@ -947,8 +950,9 @@ function ueber() {
     </div>
     <div class="karte ueber">
       <h3>Datenschutz</h3>
-      <p>Die App speichert deinen Lernstand ausschließlich auf deinem Gerät. Es gibt keine Anmeldung, kein Tracking
-        und keine Weitergabe von Daten. Schrift, Bilder und Töne werden vom selben Server geladen wie die App selbst.</p>
+      <p>Die App speichert deinen Lernstand ausschließlich auf deinem Gerät. Es gibt keine Anmeldung, kein Tracking,
+        keine Cookies und keine Weitergabe von Daten. Schrift, Bilder und Töne werden vom selben Server geladen wie die App selbst.</p>
+      <p><a href="datenschutz.html">Vollständige Datenschutzerklärung</a> · <a href="impressum.html">Impressum</a></p>
     </div>
     <div class="karte ueber">
       <h3>Quellen und Lizenzen</h3>
@@ -1043,7 +1047,8 @@ function einstellungen() {
     <input type="file" id="datei" accept="application/json,.json" hidden onchange="importieren(this.files[0])">
     <button class="knopf zweit" style="color:var(--bad)" onclick="zuruecksetzen()">Lernstand und Punkte zurücksetzen</button>
   </div>
-  <button class="knopf zweit" onclick="ueber()">Über die App · Haftungsausschluss</button>`;
+  <button class="knopf zweit" onclick="ueber()">Über die App · Haftungsausschluss</button>
+  <p style="text-align:center"><a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a></p>`;
   window.scrollTo(0, 0);
 }
 function probehoeren(richtig) {
